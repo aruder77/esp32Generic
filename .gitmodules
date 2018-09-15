@@ -1,3 +1,6 @@
 [submodule "lib/WIFIMANAGER-ESP"]
 	path = lib/WIFIMANAGER-ESP
 	url = https://github.com/zhouhan0126/WIFIMANAGER-ESP32.git
+[submodule "lib/esp32-http-fota"]
+	path = lib/esp32-http-fota
+	url = git@github.com:nhatuan84/esp32-http-fota.git
