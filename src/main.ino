@@ -6,6 +6,35 @@
 #include <WiFiManager.h>
 #include "HttpFOTA.h"
 #include <PubSubClient.h>
+#include <Ticker.h>
+
+/* topics */
+#define OTA_TOPIC "smarthome/room1/ota"
+
+const char *mqtt_server = "192.168.178.27";
+const int baud_rate = 115200;
+const byte interruptPin = A3;
+char *root_ca = \
+  "-----BEGIN CERTIFICATE-----\n"\
+  "MIIDSjCCAjKgAwIBAgIQRK+wgNajJ7qJMDmGLvhAazANBgkqhkiG9w0BAQUFADA/\n"\
+  "MSQwIgYDVQQKExtEaWdpdGFsIFNpZ25hdHVyZSBUcnVzdCBDby4xFzAVBgNVBAMT\n"\
+  "DkRTVCBSb290IENBIFgzMB4XDTAwMDkzMDIxMTIxOVoXDTIxMDkzMDE0MDExNVow\n"\
+  "PzEkMCIGA1UEChMbRGlnaXRhbCBTaWduYXR1cmUgVHJ1c3QgQ28uMRcwFQYDVQQD\n"\
+  "Ew5EU1QgUm9vdCBDQSBYMzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB\n"\
+  "AN+v6ZdQCINXtMxiZfaQguzH0yxrMMpb7NnDfcdAwRgUi+DoM3ZJKuM/IUmTrE4O\n"\
+  "rz5Iy2Xu/NMhD2XSKtkyj4zl93ewEnu1lcCJo6m67XMuegwGMoOifooUMM0RoOEq\n"\
+  "OLl5CjH9UL2AZd+3UWODyOKIYepLYYHsUmu5ouJLGiifSKOeDNoJjj4XLh7dIN9b\n"\
+  "xiqKqy69cK3FCxolkHRyxXtqqzTWMIn/5WgTe1QLyNau7Fqckh49ZLOMxt+/yUFw\n"\
+  "7BZy1SbsOFU5Q9D8/RhcQPGX69Wam40dutolucbY38EVAjqr2m7xPi71XAicPNaD\n"\
+  "aeQQmxkqtilX4+U9m5/wAl0CAwEAAaNCMEAwDwYDVR0TAQH/BAUwAwEB/zAOBgNV\n"\
+  "HQ8BAf8EBAMCAQYwHQYDVR0OBBYEFMSnsaR7LHH62+FLkHX/xBVghYkQMA0GCSqG\n"\
+  "SIb3DQEBBQUAA4IBAQCjGiybFwBcqR7uKGY3Or+Dxz9LwwmglSBd49lZRNI+DT69\n"\
+  "ikugdB/OEIKcdBodfpga3csTS7MgROSR6cz8faXbauX+5v3gTt23ADq1cEmv8uXr\n"\
+  "AvHRAosZy5Q6XkjEGB5YGV8eAlrwDPGxrancWYaLbumR9YbK+rlmM6pZW87ipxZz\n"\
+  "R8srzJmwN0jP41ZL9c8PDHIyh8bwRLtTcm1D9SZImlJnt1ir/md2cXjbDaJWFBM5\n"\
+  "JDGFoqgCWjBH4d1QB7wCCZAA62RjYJsWvIjJEubSfZGL+T0yjWW06XyxV3bqxbYo\n"\
+  "Ob8VZRzI9neWagqNdwvYkQsEjgfbKbYK7p2CNTUQ\n"\
+  "-----END CERTIFICATE-----";
 
 typedef enum
 {
@@ -13,16 +42,15 @@ typedef enum
   Fota_e
 } SysState;
 
-const char *mqtt_server = "192.168.1.107";
+Ticker ticker;
+WiFiClient espClient;
+PubSubClient client(espClient);
+
 
 char url[100];
 char md5_check[50];
-WiFiClient espClient;
-PubSubClient client(espClient);
 SysState state = Runnning_e;
 
-/* topics */
-#define OTA_TOPIC "smarthome/room1/ota"
 
 void progress(DlState state, int percent)
 {
@@ -31,17 +59,31 @@ void progress(DlState state, int percent)
 
 void receivedCallback(char *topic, byte *payload, unsigned int length)
 {
+  Serial.printf("received mqtt message [%s]\n", topic);
+  Serial.printf("length: %d\n", length);
+
+  char data[length + 1];
+	for (unsigned int i = 0; i < length; i++) {
+	    data[i] = (char)payload[i];
+	}
+	data[length] = 0;
+
+  Serial.printf("payload: %s\n", data);
 
   if (strncmp(OTA_TOPIC, topic, strlen(OTA_TOPIC)) == 0)
   {
     memset(url, 0, 100);
     memset(md5_check, 0, 50);
-    char *tmp = strstr((char *)payload, "url:");
-    char *tmp1 = strstr((char *)payload, ",");
+    char *tmp = strstr(data, "url:");
+    char *tmp1 = strstr(data, ",");
+    if (!tmp || !tmp1) {
+      Serial.printf("unsupported payload format!\n");
+      return;
+    }
     memcpy(url, tmp + strlen("url:"), tmp1 - (tmp + strlen("url:")));
 
-    char *tmp2 = strstr((char *)payload, "md5:");
-    memcpy(md5_check, tmp2 + strlen("md5:"), length - (tmp2 + strlen("md5:") - (char *)&payload[0]));
+    char *tmp2 = strstr(data, "md5:");
+    memcpy(md5_check, tmp2 + strlen("md5:"), length - (tmp2 + strlen("md5:") - (char *)&data[0]));
 
     Serial.printf("started fota url: %s\n", url);
     Serial.printf("started fota md5: %s\n", md5_check);
@@ -62,6 +104,7 @@ void mqttconnect()
       Serial.println("connected");
       /* subscribe topic */
       client.subscribe(OTA_TOPIC);
+      client.publish(OTA_TOPIC, "hello");
     }
     else
     {
@@ -86,10 +129,6 @@ void endDl(void)
 {
 }
 
-//for LED status
-#include <Ticker.h>
-Ticker ticker;
-
 void tick()
 {
   //toggle state
@@ -108,10 +147,17 @@ void configModeCallback(WiFiManager *myWiFiManager)
   ticker.attach(0.2, tick);
 }
 
+void reset()
+{
+  WiFi.disconnect(true);
+  delay(2000);
+  ESP.restart();
+}
+
 void setup()
 {
   // put your setup code here, to run once:
-  Serial.begin(9600);
+  Serial.begin(baud_rate);
 
   //set led pin as output
   pinMode(BUILTIN_LED, OUTPUT);
@@ -126,6 +172,14 @@ void setup()
 
   //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
   wifiManager.setAPCallback(configModeCallback);
+
+  // id/name, placeholder/prompt, default, length
+  WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
+  wifiManager.addParameter(&custom_mqtt_server);
+
+  // setup reset pin
+  pinMode(interruptPin, INPUT_PULLUP);
+  //attachInterrupt(digitalPinToInterrupt(interruptPin), reset, ONLOW);
 
   //fetches ssid and pass and tries to connect
   //if it does not connect it starts an access point with the specified name
@@ -174,6 +228,7 @@ void loop()
     info.endDownloadCallback = endDl;
     info.progressCallback = progress;
     info.errorCallback = error;
+    info.caCert = root_ca;
     httpFOTA.start(info);
 
     client.publish(OTA_TOPIC, "ok");
