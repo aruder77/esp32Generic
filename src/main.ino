@@ -13,7 +13,7 @@
 
 const char *mqtt_server = "192.168.178.27";
 const int baud_rate = 115200;
-const byte interruptPin = A3;
+const uint8_t interruptPin = A4;
 char *root_ca = \
   "-----BEGIN CERTIFICATE-----\n"\
   "MIIDSjCCAjKgAwIBAgIQRK+wgNajJ7qJMDmGLvhAazANBgkqhkiG9w0BAQUFADA/\n"\
@@ -43,6 +43,8 @@ typedef enum
 } SysState;
 
 Ticker ticker;
+WiFiManager wifiManager;
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -50,6 +52,7 @@ PubSubClient client(espClient);
 char url[100];
 char md5_check[50];
 SysState state = Runnning_e;
+bool resetting = false;
 
 
 void progress(DlState state, int percent)
@@ -149,13 +152,17 @@ void configModeCallback(WiFiManager *myWiFiManager)
 
 void reset()
 {
-  WiFi.disconnect(true);
-  delay(2000);
-  ESP.restart();
+  if (!resetting) { 
+    resetting = true;
+    Serial.println("resetting controller!");
+    wifiManager.resetSettings();
+  }
 }
 
 void setup()
 {
+  resetting = false;
+
   // put your setup code here, to run once:
   Serial.begin(baud_rate);
 
@@ -164,22 +171,16 @@ void setup()
   // start ticker with 0.5 because we start in AP mode and try to connect
   ticker.attach(0.6, tick);
 
-  //WiFiManager
-  //Local intialization. Once its business is done, there is no need to keep it around
-  WiFiManager wifiManager;
-  //reset settings - for testing
-  //wifiManager.resetSettings();
-
   //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
   wifiManager.setAPCallback(configModeCallback);
 
   // id/name, placeholder/prompt, default, length
-  WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
+  WiFiManagerParameter custom_mqtt_server("server", "mqtt server", "", 40);
   wifiManager.addParameter(&custom_mqtt_server);
 
   // setup reset pin
   pinMode(interruptPin, INPUT_PULLUP);
-  //attachInterrupt(digitalPinToInterrupt(interruptPin), reset, ONLOW);
+  attachInterrupt(digitalPinToInterrupt(interruptPin), reset, ONLOW);
 
   //fetches ssid and pass and tries to connect
   //if it does not connect it starts an access point with the specified name
