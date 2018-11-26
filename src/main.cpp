@@ -7,11 +7,12 @@
 #include "HttpFOTA.h"
 #include <PubSubClient.h>
 #include <Ticker.h>
+#include <Preferences.h>
 
 /* topics */
 #define OTA_TOPIC "smarthome/room1/ota"
 
-const char *mqtt_server = "192.168.178.27";
+const char *mqtt_server = "";
 const int baud_rate = 115200;
 const uint8_t interruptPin = A4;
 char *root_ca = \
@@ -48,11 +49,12 @@ WiFiManager wifiManager;
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+Preferences preferences;
+
 
 char url[100];
 char md5_check[50];
 SysState state = Runnning_e;
-bool resetting = false;
 
 
 void progress(DlState state, int percent)
@@ -150,61 +152,24 @@ void configModeCallback(WiFiManager *myWiFiManager)
   ticker.attach(0.2, tick);
 }
 
-void reset()
-{
-  if (!resetting) { 
-    resetting = true;
-    Serial.println("resetting controller!");
-    wifiManager.resetSettings();
-  }
-}
 
 void setup()
 {
-  resetting = false;
-
   // put your setup code here, to run once:
   Serial.begin(baud_rate);
 
   //set led pin as output
   pinMode(BUILTIN_LED, OUTPUT);
-  // start ticker with 0.5 because we start in AP mode and try to connect
-  ticker.attach(0.6, tick);
 
-  //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
-  wifiManager.setAPCallback(configModeCallback);
+  pinMode(interruptPin, INPUT_PULLUP);  
 
-  // id/name, placeholder/prompt, default, length
-  WiFiManagerParameter custom_mqtt_server("server", "mqtt server", "", 40);
-  wifiManager.addParameter(&custom_mqtt_server);
-
-  // setup reset pin
-  pinMode(interruptPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(interruptPin), reset, ONLOW);
-
-  //fetches ssid and pass and tries to connect
-  //if it does not connect it starts an access point with the specified name
-  //here  "AutoConnectAP"
-  //and goes into a blocking loop awaiting configuration
-  if (!wifiManager.autoConnect())
-  {
-    Serial.println("failed to connect and hit timeout");
-    //reset and try again, or maybe put it to deep sleep
-    ESP.restart();
-    delay(1000);
-  }
-
-  //if you get here you have connected to the WiFi
-  Serial.println("connected...yeey :)");
-  ticker.detach();
-  //keep LED on
-  digitalWrite(BUILTIN_LED, HIGH);
-
-  /* configure the MQTT server with IPaddress and port */
-  client.setServer(mqtt_server, 1883);
   /* this receivedCallback function will be invoked 
   when client received subscribed topic */
   client.setCallback(receivedCallback);
+
+  preferences.begin("espGeneric", true);
+  mqtt_server = preferences.getString("mqtt-server", "").c_str();
+  preferences.end();
 }
 
 void loop()
@@ -212,6 +177,47 @@ void loop()
   switch (state)
   {
   case Runnning_e:
+
+      // is configuration portal requested?
+    if ( digitalRead(interruptPin) == LOW ) {
+      //WiFiManager
+      //Local intialization. Once its business is done, there is no need to keep it around
+      WiFiManager wifiManager;
+
+      // start ticker with 0.5 because we start in AP mode and try to connect
+      ticker.attach(0.6, tick);
+
+      //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
+      wifiManager.setAPCallback(configModeCallback);
+
+      // id/name, placeholder/prompt, default, length
+      WiFiManagerParameter custom_mqtt_server("server", "mqtt server", "", 40);
+      wifiManager.addParameter(&custom_mqtt_server);
+      
+      if (!wifiManager.startConfigPortal("OnDemandAP", "s3cret")) {
+        Serial.println("failed to connect and hit timeout");
+        delay(3000);
+        //reset and try again, or maybe put it to deep sleep
+        ESP.restart();
+        delay(5000);
+      }
+
+      mqtt_server = custom_mqtt_server.getValue();
+
+      preferences.begin("espGeneric", false);
+      preferences.putString("mqtt-server", mqtt_server);
+      preferences.end();
+
+      //if you get here you have connected to the WiFi
+      Serial.println("connected...yeey :)");
+      ticker.detach();
+      //keep LED on
+      digitalWrite(BUILTIN_LED, HIGH);      
+    }
+
+    /* configure the MQTT server with IPaddress and port */
+    client.setServer(mqtt_server, 1883);      
+
     /* if client was disconnected then try to reconnect again */
     if (!client.connected())
     {
