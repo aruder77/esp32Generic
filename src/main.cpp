@@ -12,7 +12,7 @@
 /* topics */
 #define OTA_TOPIC "smarthome/room1/ota"
 
-const char *mqtt_server = "";
+char *mqtt_server = new char[16];
 const int baud_rate = 115200;
 const uint8_t interruptPin = A4;
 char *root_ca = \
@@ -98,7 +98,7 @@ void receivedCallback(char *topic, byte *payload, unsigned int length)
 void mqttconnect()
 {
   /* Loop until reconnected */
-  while (!client.connected())
+  while (!client.connected() && digitalRead(interruptPin) == HIGH)
   {
     Serial.print("MQTT connecting ...");
     /* client ID */
@@ -168,8 +168,17 @@ void setup()
   client.setCallback(receivedCallback);
 
   preferences.begin("espGeneric", true);
-  mqtt_server = preferences.getString("mqtt-server", "").c_str();
+  const char *mqtt_server_c_str = preferences.getString("mqtt-server", "").c_str();
   preferences.end();
+  strcpy(mqtt_server, mqtt_server_c_str);
+  Serial.print("loaded mqtt-server from eeprom: ");
+  Serial.println(mqtt_server);
+  client.setServer(mqtt_server, 1883);
+
+  if (wifiManager.autoConnect()) {
+    //keep LED on
+    digitalWrite(BUILTIN_LED, HIGH);        
+  }
 }
 
 void loop()
@@ -180,10 +189,6 @@ void loop()
 
       // is configuration portal requested?
     if ( digitalRead(interruptPin) == LOW ) {
-      //WiFiManager
-      //Local intialization. Once its business is done, there is no need to keep it around
-      WiFiManager wifiManager;
-
       // start ticker with 0.5 because we start in AP mode and try to connect
       ticker.attach(0.6, tick);
 
@@ -202,11 +207,14 @@ void loop()
         delay(5000);
       }
 
-      mqtt_server = custom_mqtt_server.getValue();
+      strcpy(mqtt_server, custom_mqtt_server.getValue());
+      client.setServer(mqtt_server, 1883);      
 
       preferences.begin("espGeneric", false);
       preferences.putString("mqtt-server", mqtt_server);
       preferences.end();
+      Serial.print("saved mqtt-server to eeprom: ");
+      Serial.println(mqtt_server);
 
       //if you get here you have connected to the WiFi
       Serial.println("connected...yeey :)");
@@ -214,9 +222,6 @@ void loop()
       //keep LED on
       digitalWrite(BUILTIN_LED, HIGH);      
     }
-
-    /* configure the MQTT server with IPaddress and port */
-    client.setServer(mqtt_server, 1883);      
 
     /* if client was disconnected then try to reconnect again */
     if (!client.connected())
