@@ -8,6 +8,7 @@
 #include <PubSubClient.h>
 #include <Ticker.h>
 #include <Preferences.h>
+#include <ArduinoLog.h>
 
 /* topics */
 #define OTA_TOPIC "smarthome/room1/ota"
@@ -59,13 +60,12 @@ SysState state = Runnning_e;
 
 void progress(DlState state, int percent)
 {
-  Serial.printf("state = %d - percent = %d\n", state, percent);
+  Log.notice("state = %d - percent = %d\n", state, percent);
 }
 
 void receivedCallback(char *topic, byte *payload, unsigned int length)
 {
-  Serial.printf("received mqtt message [%s]\n", topic);
-  Serial.printf("length: %d\n", length);
+  Log.trace("received mqtt message [%s]\n", topic);
 
   char data[length + 1];
 	for (unsigned int i = 0; i < length; i++) {
@@ -73,7 +73,7 @@ void receivedCallback(char *topic, byte *payload, unsigned int length)
 	}
 	data[length] = 0;
 
-  Serial.printf("payload: %s\n", data);
+  Log.verbose("payload: %s\n", data);
 
   if (strncmp(OTA_TOPIC, topic, strlen(OTA_TOPIC)) == 0)
   {
@@ -82,7 +82,7 @@ void receivedCallback(char *topic, byte *payload, unsigned int length)
     char *tmp = strstr(data, "url:");
     char *tmp1 = strstr(data, ",");
     if (!tmp || !tmp1) {
-      Serial.printf("unsupported payload format!\n");
+      Log.warning("unsupported payload format!\n");
       return;
     }
     memcpy(url, tmp + strlen("url:"), tmp1 - (tmp + strlen("url:")));
@@ -90,41 +90,37 @@ void receivedCallback(char *topic, byte *payload, unsigned int length)
     char *tmp2 = strstr(data, "md5:");
     memcpy(md5_check, tmp2 + strlen("md5:"), length - (tmp2 + strlen("md5:") - (char *)&data[0]));
 
-    Serial.printf("started fota url: %s\n", url);
-    Serial.printf("started fota md5: %s\n", md5_check);
+    Log.notice("started fota url: %s\n", url);
+    Log.notice("started fota md5: %s\n", md5_check);
     state = Fota_e;
   }
 }
 void mqttconnect()
 {
   /* Loop until reconnected */
-  while (!client.connected() && digitalRead(interruptPin) == HIGH)
+  if (!client.connected())
   {
-    Serial.print("MQTT connecting ...");
+    Log.notice("MQTT connecting ...\n");
     /* client ID */
     String clientId = "ESP32Client";
     /* connect now */
     if (client.connect(clientId.c_str()))
     {
-      Serial.println("connected");
+      Log.notice("...connected\n");
       /* subscribe topic */
       client.subscribe(OTA_TOPIC);
       client.publish(OTA_TOPIC, "hello");
     }
     else
     {
-      Serial.print("failed, status code =");
-      Serial.print(client.state());
-      Serial.println("try again in 5 seconds");
-      /* Wait 5 seconds before retrying */
-      delay(5000);
+      Log.error("failed, status code = %d try again in 5 seconds\n", client.state());
     }
   }
 }
 
 void error(char *message)
 {
-  printf("%s\n", message);
+  Log.error(message);
 }
 
 void startDl(void)
@@ -144,10 +140,9 @@ void tick()
 //gets called when WiFiManager enters configuration mode
 void configModeCallback(WiFiManager *myWiFiManager)
 {
-  Serial.println("Entered config mode");
-  Serial.println(WiFi.softAPIP());
+  Log.notice("Entered config mode %s\n", WiFi.softAPIP().toString());
   //if you used auto generated SSID, print it
-  Serial.println(myWiFiManager->getConfigPortalSSID());
+  Log.notice("%s\n", myWiFiManager->getConfigPortalSSID());
   //entered config mode, make led toggle faster
   ticker.attach(0.2, tick);
 }
@@ -157,6 +152,7 @@ void setup()
 {
   // put your setup code here, to run once:
   Serial.begin(baud_rate);
+  Log.begin(LOG_LEVEL_TRACE, &Serial);
 
   //set led pin as output
   pinMode(BUILTIN_LED, OUTPUT);
@@ -171,8 +167,7 @@ void setup()
   const char *mqtt_server_c_str = preferences.getString("mqtt-server", "").c_str();
   preferences.end();
   strcpy(mqtt_server, mqtt_server_c_str);
-  Serial.print("loaded mqtt-server from eeprom: ");
-  Serial.println(mqtt_server);
+  Log.notice("loaded mqtt-server from eeprom: %s\n", mqtt_server);
   client.setServer(mqtt_server, 1883);
 
   if (wifiManager.autoConnect()) {
@@ -199,8 +194,8 @@ void loop()
       WiFiManagerParameter custom_mqtt_server("server", "mqtt server", "", 40);
       wifiManager.addParameter(&custom_mqtt_server);
       
-      if (!wifiManager.startConfigPortal("OnDemandAP", "s3cret")) {
-        Serial.println("failed to connect and hit timeout");
+      if (!wifiManager.startConfigPortal("OnDemandAP", "geheim")) {
+        Log.warning("failed to connect and hit timeout\n");
         delay(3000);
         //reset and try again, or maybe put it to deep sleep
         ESP.restart();
@@ -213,11 +208,10 @@ void loop()
       preferences.begin("espGeneric", false);
       preferences.putString("mqtt-server", mqtt_server);
       preferences.end();
-      Serial.print("saved mqtt-server to eeprom: ");
-      Serial.println(mqtt_server);
+      Log.notice("saved mqtt-server to eeprom: %s\n", mqtt_server);
 
       //if you get here you have connected to the WiFi
-      Serial.println("connected...yeey :)");
+      Log.notice("connected...yeey :)\n");
       ticker.detach();
       //keep LED on
       digitalWrite(BUILTIN_LED, HIGH);      
