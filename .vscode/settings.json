@@ -1,6 +1,6 @@
 {
     "terminal.integrated.env.osx": {
-        "PATH": "/Users/axel/.platformio/penv/bin:/Users/axel/.platformio/penv:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/texbin:/opt/puppetlabs/pdk/bin:/usr/local/CrossPack-AVR/bin:/Users/axel/Documents/Projects/OpenHab/apache-maven-3.3.1/bin:/Users/axel/.platformio/penv/bin",
+        "PATH": "/Users/axel/.platformio/penv/bin:/Users/axel/.platformio/penv:/Users/axel/.sdkman/candidates/groovy/current/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/texbin:/opt/puppetlabs/pdk/bin:/usr/local/CrossPack-AVR/bin:/Users/axel/Documents/Projects/OpenHab/apache-maven-3.3.1/bin:/Users/axel/.platformio/penv/bin",
         "PLATFORMIO_CALLER": "vscode"
     }
 }

@@ -33,14 +33,14 @@ void LedController::blinkSlow() {
 }
 
 void LedController::on() {
-    if (ticker.active) {
+    if (ticker.active()) {
         ticker.detach();
     }
     digitalWrite(BUILTIN_LED, HIGH);  
 }
 
 void LedController::off() {
-    if (ticker.active) {
+    if (ticker.active()) {
         ticker.detach();
     }
     digitalWrite(BUILTIN_LED, LOW);  

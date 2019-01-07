@@ -14,9 +14,10 @@
 #include "NetworkControl.h"
 #include "Prefs.h"
 #include "LedController.h"
+#include "NetworkModule.h"
 
 /* topics */
-#define OTA_TOPIC "smarthome/room1/ota"
+#define OTA_TOPIC "ota"
 
 typedef enum
 {
@@ -25,13 +26,16 @@ typedef enum
 } SysState;
 
 
-class Controller {
+class Controller : public NetworkModule {
     public:
         Controller();
         ~Controller();
 
         void setup();
         void loop();
+        
+        virtual void commandReceived(char *command, char *payload);
+        virtual char *getTelemetryData();        
 
     private:
         char *mqtt_server = new char[16];

@@ -6,38 +6,35 @@ void progress(DlState state, int percent)
   Log.notice("state = %d - percent = %d\n", state, percent);
 }
 
-void Controller::receivedCallback(char *topic, byte *payload, unsigned int length)
-{
-  Log.trace("received mqtt message [%s]\n", topic);
 
-  char data[length + 1];
-	for (unsigned int i = 0; i < length; i++) {
-	    data[i] = (char)payload[i];
-	}
-	data[length] = 0;
-
-  Log.verbose("payload: %s\n", data);
-
-  if (strncmp(OTA_TOPIC, topic, strlen(OTA_TOPIC)) == 0)
+void Controller::commandReceived(char *command, char *payload) {
+  if (strncmp(OTA_TOPIC, command, strlen(OTA_TOPIC)) == 0)
   {
     memset(url, 0, 100);
     memset(md5_check, 0, 50);
-    char *tmp = strstr(data, "url:");
-    char *tmp1 = strstr(data, ",");
+    char *tmp = strstr(payload, "url:");
+    char *tmp1 = strstr(payload, ",");
     if (!tmp || !tmp1) {
       Log.warning("unsupported payload format!\n");
       return;
     }
     memcpy(url, tmp + strlen("url:"), tmp1 - (tmp + strlen("url:")));
 
-    char *tmp2 = strstr(data, "md5:");
-    memcpy(md5_check, tmp2 + strlen("md5:"), length - (tmp2 + strlen("md5:") - (char *)&data[0]));
+    char *tmp2 = strstr(payload, "md5:");
+    int length = strlen(payload);
+    memcpy(md5_check, tmp2 + strlen("md5:"), length - (tmp2 + strlen("md5:") - &payload[0]));
 
     Log.notice("started fota url: %s\n", url);
     Log.notice("started fota md5: %s\n", md5_check);
     state = Fota_e;
   }
 }
+
+char *Controller::getTelemetryData() {
+	return "";
+}
+
+
 void Controller::mqttconnect()
 {
   /* Loop until reconnected */

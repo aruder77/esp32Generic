@@ -14,6 +14,7 @@
 #include <ArduinoLog.h>
 #include <WiFi.h>
 #include <WiFiManager.h>
+#include "NetworkModule.h"
 
 #define RECONNECT_LOOP_COUNT 100
 
@@ -30,6 +31,7 @@ public:
 	bool isConnected();
 
 	void registerConfigParam(char *configId, char *prompt, char *defaultValue, int length);
+	void subscribeToCommand(char *command, NetworkModule *networkModule);
 
 private:
 	static NetworkControl* instance;

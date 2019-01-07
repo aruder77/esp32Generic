@@ -106,3 +106,7 @@ void NetworkControl::reconnect() {
 bool NetworkControl::isConnected() {
 	return mqttClient->connected();
 }
+
+void NetworkControl::registerConfigParam(char *configId, char *prompt, char *defaultValue, int length) {
+	
+}
