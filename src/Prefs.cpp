@@ -1,4 +1,5 @@
 #include "Prefs.h"
+#include "NetworkControl.h"
 
 Prefs *Prefs::instance = 0;
 
@@ -13,8 +14,6 @@ Prefs* Prefs::getInstance()
 	return Prefs::instance;
 }
 
-Prefs::Prefs() {
-}
 
 void Prefs::set(char *key, char *value) {
     preferences.begin("espGeneric", false);
@@ -48,4 +47,5 @@ Module *Prefs::getModuleForConfigId(char *configId) {
             return modules[i];
         }
     }
+    return NULL;
 }

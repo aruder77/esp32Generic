@@ -3,9 +3,8 @@
 
 #include <Preferences.h>
 #include "Module.h"
-#include "NetworkControl.h"
 
-class Prefs : public Module {
+class Prefs {
 
     public:
         static Prefs* getInstance();    
@@ -19,6 +18,7 @@ class Prefs : public Module {
     private:
         static const int MAX_NUMBER_OF_CONFIG_ITEMS = 100;
 	    static Prefs* instance;
+
         Preferences preferences;   
 
         int numberOfConfigItems = 0;

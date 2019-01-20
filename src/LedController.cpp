@@ -13,6 +13,9 @@ LedController* LedController::getInstance()
 	return LedController::instance;
 }
 
+LedController::LedController() {
+}
+
 void LedController::toggle()
 {
     //toggle state
@@ -32,16 +35,12 @@ void LedController::blinkSlow() {
     ticker.attach(1.5, toggle);
 }
 
-void LedController::on() {
-    if (ticker.active()) {
-        ticker.detach();
-    }
+void LedController::on() {        
+    ticker.detach();
     digitalWrite(BUILTIN_LED, HIGH);  
 }
 
 void LedController::off() {
-    if (ticker.active()) {
-        ticker.detach();
-    }
+    ticker.detach();
     digitalWrite(BUILTIN_LED, LOW);  
 }

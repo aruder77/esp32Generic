@@ -15,6 +15,8 @@
 #include <WiFi.h>
 #include <WiFiManager.h>
 #include "NetworkModule.h"
+#include "LedController.h"
+#include "Prefs.h"
 
 #define RECONNECT_LOOP_COUNT 100
 
@@ -33,18 +35,23 @@ public:
 	void registerConfigParam(char *configId, char *prompt, char *defaultValue, int length);
 	void subscribeToCommand(char *command, NetworkModule *networkModule);
 
+	void enterConfigPortal();
+
 private:
 	static NetworkControl* instance;
 
 	PubSubClient* mqttClient;
     WiFiManager wifiManager;
 
+	Prefs* prefs;
 
 	int loop_counter = 0;
 	char mqtt_server[100];
 
 	NetworkControl();
 	void reconnect();
+
+	static void configModeCallback(WiFiManager *myWiFiManager);
 };
 
 #endif /* NETWORKCONTROL_H_ */

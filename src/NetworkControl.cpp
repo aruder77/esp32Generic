@@ -27,6 +27,8 @@ NetworkControl::NetworkControl() {
   	WiFiClient *espClient = new WiFiClient();
   	mqttClient = new PubSubClient(*espClient);
 
+	//prefs = Prefs::getInstance();
+
 	mqttClient->setCallback(callback);
 
 	Prefs::getInstance()->get("mqtt-server", mqtt_server);
@@ -91,7 +93,7 @@ bool NetworkControl::exists() {
 void NetworkControl::reconnect() {
   // Loop until we're reconnected
   if (!mqttClient->connected()) {
-	Log.notice("Attempting MQTT connection...\n")
+	Log.notice("Attempting MQTT connection...\n");
     // Attempt to connect
     if (mqttClient->connect("arduinoClient")) {
 	  Log.notice("connected\n");
@@ -110,3 +112,37 @@ bool NetworkControl::isConnected() {
 void NetworkControl::registerConfigParam(char *configId, char *prompt, char *defaultValue, int length) {
 	
 }
+
+//gets called when WiFiManager enters configuration mode
+void NetworkControl::configModeCallback(WiFiManager *myWiFiManager)
+{
+  Log.notice("Entered config mode %s\n", WiFi.softAPIP().toString());
+  //if you used auto generated SSID, print it
+  Log.notice("%s\n", myWiFiManager->getConfigPortalSSID());
+  //entered config mode, make led toggle faster
+  LedController::getInstance()->blinkFast();
+}
+
+void NetworkControl::enterConfigPortal() {
+      //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
+      wifiManager.setAPCallback(configModeCallback);
+
+      // id/name, placeholder/prompt, default, length
+      WiFiManagerParameter custom_mqtt_server("server", "mqtt server", "", 40);
+      wifiManager.addParameter(&custom_mqtt_server);
+      
+      if (!wifiManager.startConfigPortal("OnDemandAP", "geheim")) {
+        Log.warning("failed to connect and hit timeout\n");
+        delay(3000);
+        //reset and try again, or maybe put it to deep sleep
+        ESP.restart();
+        delay(5000);
+      }
+
+      strcpy(mqtt_server, custom_mqtt_server.getValue());
+      mqttClient->setServer(mqtt_server, 1883);      
+
+      //prefs->set("mqtt-server", mqtt_server);
+      Log.notice("saved mqtt-server to eeprom: %s\n", mqtt_server);	
+}
+

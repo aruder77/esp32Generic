@@ -35,29 +35,6 @@ char *Controller::getTelemetryData() {
 }
 
 
-void Controller::mqttconnect()
-{
-  /* Loop until reconnected */
-  if (!client->connected())
-  {
-    Log.notice("MQTT connecting ...\n");
-    /* client ID */
-    String clientId = "ESP32Client";
-    /* connect now */
-    if (client->connect(clientId.c_str()))
-    {
-      Log.notice("...connected\n");
-      /* subscribe topic */
-      client->subscribe(OTA_TOPIC);
-      client->publish(OTA_TOPIC, "hello");
-    }
-    else
-    {
-      Log.error("failed, status code = %d try again in 5 seconds\n", client->state());
-    }
-  }
-}
-
 void error(char *message)
 {
   Log.error(message);
@@ -68,23 +45,6 @@ void startDl(void)
 }
 void endDl(void)
 {
-}
-
-void tick()
-{
-  //toggle state
-  int state = digitalRead(BUILTIN_LED); // get the current state of GPIO1 pin
-  digitalWrite(BUILTIN_LED, !state);    // set pin to the opposite state
-}
-
-//gets called when WiFiManager enters configuration mode
-void Controller::configModeCallback(WiFiManager *myWiFiManager)
-{
-  Log.notice("Entered config mode %s\n", WiFi.softAPIP().toString());
-  //if you used auto generated SSID, print it
-  Log.notice("%s\n", myWiFiManager->getConfigPortalSSID());
-  //entered config mode, make led toggle faster
-  ticker.attach(0.2, tick);
 }
 
 
@@ -114,40 +74,14 @@ void Controller::loop()
     if ( digitalRead(interruptPin) == LOW ) {
       ledController->blink();
 
-      //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
-      wifiManager.setAPCallback(configModeCallback);
-
-      // id/name, placeholder/prompt, default, length
-      WiFiManagerParameter custom_mqtt_server("server", "mqtt server", "", 40);
-      wifiManager.addParameter(&custom_mqtt_server);
-      
-      if (!wifiManager.startConfigPortal("OnDemandAP", "geheim")) {
-        Log.warning("failed to connect and hit timeout\n");
-        delay(3000);
-        //reset and try again, or maybe put it to deep sleep
-        ESP.restart();
-        delay(5000);
-      }
-
-      strcpy(mqtt_server, custom_mqtt_server.getValue());
-      client->setServer(mqtt_server, 1883);      
-
-      prefs->set("mqtt-server", mqtt_server);
-      Log.notice("saved mqtt-server to eeprom: %s\n", mqtt_server);
+      networkControl->enterConfigPortal();
 
       //if you get here you have connected to the WiFi
       Log.notice("connected...yeey :)\n");
       ledController->on();     
     }
 
-    /* if client was disconnected then try to reconnect again */
-    if (!client->connected())
-    {
-      mqttconnect();
-    }
-    /* this function will listen for incomming 
-      subscribed topic-process-invoke receivedCallback */
-    client->loop();
+    networkControl->loop();
     break;
   case Fota_e:
     DlInfo info;
