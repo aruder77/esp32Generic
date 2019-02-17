@@ -2,14 +2,7 @@
 #define CONTROLLER_H_
 
 #include <Arduino.h>
-#include <WiFi.h>
-#include <DNSServer.h>
-#include <WebServer.h>
-#include <WiFiManager.h>
 #include "HttpFOTA.h"
-#include <PubSubClient.h>
-#include <Ticker.h>
-#include <Preferences.h>
 #include <ArduinoLog.h>
 #include "NetworkControl.h"
 #include "Prefs.h"
@@ -38,7 +31,6 @@ class Controller : public NetworkModule {
         virtual char *getTelemetryData();        
 
     private:
-        char *mqtt_server = new char[16];
         const int baud_rate = 115200;
         const uint8_t interruptPin = A4;
         char *root_ca = \
@@ -63,26 +55,13 @@ class Controller : public NetworkModule {
             "Ob8VZRzI9neWagqNdwvYkQsEjgfbKbYK7p2CNTUQ\n"\
             "-----END CERTIFICATE-----";
 
-        Ticker ticker;
-        WiFiManager wifiManager;
-
-        WiFiClient *espClient;
-        PubSubClient *client;
-
         NetworkControl* networkControl;
         Prefs* prefs;
         LedController* ledController;
 
-        Preferences preferences;
-
         char url[100];
         char md5_check[50];
         SysState state = Runnning_e;
-
-        static void receivedCallback(char *topic, byte *payload, unsigned int length);
-        void mqttconnect();
-
-        void configModeCallback(WiFiManager *myWiFiManager);
 };
 
 #endif

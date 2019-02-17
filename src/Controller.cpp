@@ -6,6 +6,16 @@ void progress(DlState state, int percent)
   Log.notice("state = %d - percent = %d\n", state, percent);
 }
 
+void error(char *message) {
+  Log.error(message);
+}
+
+void startDl(void) {
+}
+
+void endDl(void) {
+}
+
 
 void Controller::commandReceived(char *command, char *payload) {
   if (strncmp(OTA_TOPIC, command, strlen(OTA_TOPIC)) == 0)
@@ -32,19 +42,6 @@ void Controller::commandReceived(char *command, char *payload) {
 
 char *Controller::getTelemetryData() {
 	return "";
-}
-
-
-void error(char *message)
-{
-  Log.error(message);
-}
-
-void startDl(void)
-{
-}
-void endDl(void)
-{
 }
 
 
@@ -94,7 +91,7 @@ void Controller::loop()
     info.caCert = root_ca;
     httpFOTA.start(info);
 
-    client->publish(OTA_TOPIC, "ok");
+    networkControl->send(OTA_TOPIC, "ok");
     break;
   default:
     break;

@@ -44,9 +44,12 @@ private:
     WiFiManager wifiManager;
 
 	Prefs* prefs;
+	LedController* ledController;
 
 	int loop_counter = 0;
 	char mqtt_server[100];
+	short numberOfWifiManagerParams = 0;
+	WiFiManagerParameter* wifiManagerParams[20];
 
 	NetworkControl();
 	void reconnect();

@@ -21,13 +21,25 @@ void callback(char* topic, byte* payload, unsigned int length) {
 	NetworkControl::getInstance()->messageReceived(topic, data);
 }
 
+NetworkControl* NetworkControl::getInstance()
+{
+    // The only instance
+    // Guaranteed to be lazy initialized
+    // Guaranteed that it will be destroyed correctly
+	if (!NetworkControl::instance) {
+		NetworkControl::instance = new NetworkControl();
+	}
+	return NetworkControl::instance;
+}
+
 NetworkControl::NetworkControl() {
 	Log.notice("Initializing NetworkControl\n");
 
   	WiFiClient *espClient = new WiFiClient();
   	mqttClient = new PubSubClient(*espClient);
 
-	//prefs = Prefs::getInstance();
+	prefs = Prefs::getInstance();
+	ledController = LedController::getInstance();
 
 	mqttClient->setCallback(callback);
 
@@ -37,7 +49,7 @@ NetworkControl::NetworkControl() {
 
   	if (wifiManager.autoConnect()) {
     	//keep LED on
-    	digitalWrite(BUILTIN_LED, HIGH);        
+    	ledController->on();        
   	}
 
 	// Allow the hardware to sort itself out
@@ -49,15 +61,17 @@ NetworkControl::NetworkControl() {
 NetworkControl::~NetworkControl() {
 }
 
-NetworkControl* NetworkControl::getInstance()
-{
-    // The only instance
-    // Guaranteed to be lazy initialized
-    // Guaranteed that it will be destroyed correctly
-	if (!NetworkControl::instance) {
-		NetworkControl::instance = new NetworkControl();
-	}
-	return NetworkControl::instance;
+void NetworkControl::reconnect() {
+  // Loop until we're reconnected
+  if (!mqttClient->connected()) {
+	Log.notice("Attempting MQTT connection...\n");
+    // Attempt to connect
+    if (mqttClient->connect("arduinoClient")) {
+	  Log.notice("connected\n");
+    } else {
+	  Log.error("failed, rc=%d try again in 5 minutes\n", mqttClient->state());
+    }
+  }
 }
 
 
@@ -79,6 +93,14 @@ char* substr(const char *buff, uint8_t start,uint8_t len, char* substr)
 
 void NetworkControl::messageReceived(const char *topic, const char *message) {
 	Log.notice("Message received [%s]: %s\n", topic, message);
+
+	if (strncmp(topic, "cmnd/", 5) == 0) {
+		int idxSndSlash = strchr(topic + 5, '/') - topic;
+		
+	} else if (strncmp(topic, "config/", 7)) {
+		int idxSndSlash = strchr(topic + 7, '/') - topic;
+
+	}
 }
 
 
@@ -90,27 +112,14 @@ bool NetworkControl::exists() {
 	return instance != 0;
 }
 
-void NetworkControl::reconnect() {
-  // Loop until we're reconnected
-  if (!mqttClient->connected()) {
-	Log.notice("Attempting MQTT connection...\n");
-    // Attempt to connect
-    if (mqttClient->connect("arduinoClient")) {
-	  Log.notice("connected\n");
-      mqttClient->subscribe("ventilation/input/#");
-      mqttClient->publish("ventilation/logging", "Ventilation client connected.");
-    } else {
-	  Log.error("failed, rc=%d try again in 5 minutes\n", mqttClient->state());
-    }
-  }
-}
 
 bool NetworkControl::isConnected() {
 	return mqttClient->connected();
 }
 
 void NetworkControl::registerConfigParam(char *configId, char *prompt, char *defaultValue, int length) {
-	
+	WiFiManagerParameter *param = new WiFiManagerParameter(configId, prompt, defaultValue, length);
+	wifiManagerParams[numberOfWifiManagerParams++] = param;
 }
 
 //gets called when WiFiManager enters configuration mode
@@ -130,6 +139,10 @@ void NetworkControl::enterConfigPortal() {
       // id/name, placeholder/prompt, default, length
       WiFiManagerParameter custom_mqtt_server("server", "mqtt server", "", 40);
       wifiManager.addParameter(&custom_mqtt_server);
+
+	  for (int i = 0; i < numberOfWifiManagerParams; i++) {
+		  wifiManager.addParameter(wifiManagerParams[i]);
+	  }
       
       if (!wifiManager.startConfigPortal("OnDemandAP", "geheim")) {
         Log.warning("failed to connect and hit timeout\n");
@@ -142,7 +155,7 @@ void NetworkControl::enterConfigPortal() {
       strcpy(mqtt_server, custom_mqtt_server.getValue());
       mqttClient->setServer(mqtt_server, 1883);      
 
-      //prefs->set("mqtt-server", mqtt_server);
+      prefs->set("mqtt-server", mqtt_server);
       Log.notice("saved mqtt-server to eeprom: %s\n", mqtt_server);	
 }
 
