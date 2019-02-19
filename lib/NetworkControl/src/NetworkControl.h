@@ -17,6 +17,7 @@
 #include <NetworkModule.h>
 #include <LedController.h>
 #include <Prefs.h>
+#include <MessageDispatcher.h>
 
 #define RECONNECT_LOOP_COUNT 100
 
@@ -39,13 +40,13 @@ public:
 
 private:
 	static NetworkControl* instance;
-	static const int MAX_NUMBER_OF_SUBSCRIBED_MODULES = 10;
 
 	PubSubClient* mqttClient;
     WiFiManager wifiManager;
 
 	Prefs* prefs;
 	LedController* ledController;
+	MessageDispatcher* messageDispatcher = new MessageDispatcher();
 
 	int loop_counter = 0;
 	char mqtt_server[100];
@@ -53,15 +54,10 @@ private:
 	short numberOfWifiManagerParams = 0;
 	WiFiManagerParameter* wifiManagerParams[20];
 
-	short numberOfModulesSubscribed = 0;
-    const char *subscribedCommands[MAX_NUMBER_OF_SUBSCRIBED_MODULES];
-	NetworkModule* modules[MAX_NUMBER_OF_SUBSCRIBED_MODULES];
-
 	NetworkControl();
 	void reconnect();
 
 	static void configModeCallback(WiFiManager *myWiFiManager);
-	void notifyModules(const char *commandName, const char *message);
 };
 
 #endif /* NETWORKCONTROL_H_ */

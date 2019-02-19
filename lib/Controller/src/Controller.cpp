@@ -18,7 +18,7 @@ void endDl(void) {
 
 
 void Controller::commandReceived(const char *command, const char *payload) {
-  if (strncmp(OTA_TOPIC, command, strlen(OTA_TOPIC)) == 0)
+  if (strcmp(OTA_TOPIC, command) == 0)
   {
     memset(url, 0, 100);
     memset(md5_check, 0, 50);
@@ -50,9 +50,6 @@ Controller::Controller()
   // put your setup code here, to run once:
   Serial.begin(baud_rate);
   Log.begin(LOG_LEVEL_TRACE, &Serial);
-
-  //set led pin as output
-  pinMode(BUILTIN_LED, OUTPUT);
 
   pinMode(interruptPin, INPUT_PULLUP);  
 

@@ -33,54 +33,50 @@ NetworkControl* NetworkControl::getInstance()
 }
 
 NetworkControl::NetworkControl() {
-	Log.notice("Initializing NetworkControl\n");
+		Log.notice("Initializing NetworkControl\n");
 
   	WiFiClient *espClient = new WiFiClient();
   	mqttClient = new PubSubClient(*espClient);
 
-	prefs = Prefs::getInstance();
-	ledController = LedController::getInstance();
+		prefs = Prefs::getInstance();
+		ledController = LedController::getInstance();
 
-	mqttClient->setCallback(callback);
+		mqttClient->setCallback(callback);
 
-	Prefs::getInstance()->get("mqtt-server", mqtt_server);
-	Log.notice("loaded mqtt-server from eeprom: %s\n", mqtt_server);
-  	mqttClient->setServer(mqtt_server, 1883);
+		Prefs::getInstance()->get("mqtt-server", mqtt_server);
+		Log.notice("loaded mqtt-server from eeprom: %s\n", mqtt_server);
+		mqttClient->setServer(mqtt_server, 1883);
 
   	if (wifiManager.autoConnect()) {
-    	//keep LED on
-    	ledController->on();        
+    		//keep LED on
+    		ledController->on();        
   	}
 
-	// Allow the hardware to sort itself out
-	delay(1500);
-	Log.notice("finished initializing NetworkControl\n");
-	reconnect();
+		// Allow the hardware to sort itself out
+		delay(1500);
+		Log.notice("finished initializing NetworkControl\n");
+		reconnect();
 }
 
 NetworkControl::~NetworkControl() {
 }
 
 void NetworkControl::reconnect() {
-  // Loop until we're reconnected
-  if (!mqttClient->connected()) {
-	Log.notice("Attempting MQTT connection...\n");
-    // Attempt to connect
-    if (mqttClient->connect("arduinoClient")) {
-	  Log.notice("connected\n");
-    } else {
-	  Log.error("failed, rc=%d try again in 5 minutes\n", mqttClient->state());
-    }
-  }
+	// Loop until we're reconnected
+	if (!mqttClient->connected()) {
+			Log.notice("Attempting MQTT connection...\n");
+			// Attempt to connect
+			if (mqttClient->connect("arduinoClient")) {
+				Log.notice("connected\n");
+			} else {
+				Log.error("failed, rc=%d try again in 5 minutes\n", mqttClient->state());
+			}
+	}
 }
 
 
 void NetworkControl::loop() {
-	if (!mqttClient->loop() && loop_counter > RECONNECT_LOOP_COUNT) {
-		reconnect();
-		loop_counter = 0;
-	}
-	loop_counter++;
+	mqttClient->loop();
 }
 
 
@@ -92,30 +88,16 @@ char* substr(const char *buff, uint8_t start,uint8_t len, char* substr)
 }
 
 void NetworkControl::messageReceived(const char *topic, const char *message) {
-	Log.notice("Message received [%s]: %s\n", topic, message);
-
-	if (strncmp(topic, "cmnd/", 5) == 0) {
-		const char *commandName = strchr(topic + 5, '/') + 1;
-		notifyModules(commandName, message);
-	} else if (strncmp(topic, "config/", 7) == 0) {
-		char *parameterName = strchr(topic + 7, '/') + 1;
-		prefs->configUpdate(parameterName, message);
-	}
-}
-
-void NetworkControl::notifyModules(const char *commandName, const char *message) {
-	for (int i = 0; i < numberOfModulesSubscribed; i++) {
-		if (strcmp(commandName, subscribedCommands[i]) == 0) {
-			modules[i]->commandReceived(commandName, message);
-		}
-	}
+	messageDispatcher->messageReceived(topic, message);
 }
 
 void NetworkControl::subscribeToCommand(const char *command, NetworkModule *networkModule) {
-	subscribedCommands[numberOfModulesSubscribed] = command;
-	modules[numberOfModulesSubscribed++] = networkModule;
+	messageDispatcher->subscribeToCommand(command, networkModule);
 }
 
+void NetworkControl::registerConfigParam(const char *configId, const char *prompt, const char *defaultValue, int length) {
+	messageDispatcher->registerConfigParam(configId, prompt, defaultValue, length);
+}
 
 
 void NetworkControl::send(const char *topic, const char *message) {
@@ -131,11 +113,6 @@ bool NetworkControl::isConnected() {
 	return mqttClient->connected();
 }
 
-void NetworkControl::registerConfigParam(const char *configId, const char *prompt, const char *defaultValue, int length) {
-	WiFiManagerParameter *param = new WiFiManagerParameter(configId, prompt, defaultValue, length);
-	wifiManagerParams[numberOfWifiManagerParams++] = param;
-}
-
 //gets called when WiFiManager enters configuration mode
 void NetworkControl::configModeCallback(WiFiManager *myWiFiManager)
 {
@@ -147,29 +124,29 @@ void NetworkControl::configModeCallback(WiFiManager *myWiFiManager)
 }
 
 void NetworkControl::enterConfigPortal() {
-      //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
-      wifiManager.setAPCallback(configModeCallback);
+	//set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
+	wifiManager.setAPCallback(configModeCallback);
 
-      // id/name, placeholder/prompt, default, length
-      WiFiManagerParameter custom_mqtt_server("server", "mqtt server", "", 40);
-      wifiManager.addParameter(&custom_mqtt_server);
+	// id/name, placeholder/prompt, default, length
+	WiFiManagerParameter custom_mqtt_server("server", "mqtt server", "", 40);
+	wifiManager.addParameter(&custom_mqtt_server);
 
-	  for (int i = 0; i < numberOfWifiManagerParams; i++) {
-		  wifiManager.addParameter(wifiManagerParams[i]);
-	  }
-      
-      if (!wifiManager.startConfigPortal("OnDemandAP", "geheim")) {
-        Log.warning("failed to connect and hit timeout\n");
-        delay(3000);
-        //reset and try again, or maybe put it to deep sleep
-        ESP.restart();
-        delay(5000);
-      }
+	for (int i = 0; i < numberOfWifiManagerParams; i++) {
+		wifiManager.addParameter(wifiManagerParams[i]);
+	}
+	
+	if (!wifiManager.startConfigPortal("OnDemandAP", "geheim")) {
+		Log.warning("failed to connect and hit timeout\n");
+		delay(3000);
+		//reset and try again, or maybe put it to deep sleep
+		ESP.restart();
+		delay(5000);
+	}
 
-      strcpy(mqtt_server, custom_mqtt_server.getValue());
-      mqttClient->setServer(mqtt_server, 1883);      
+	strcpy(mqtt_server, custom_mqtt_server.getValue());
+	mqttClient->setServer(mqtt_server, 1883);      
 
-      prefs->set("mqtt-server", mqtt_server);
-      Log.notice("saved mqtt-server to eeprom: %s\n", mqtt_server);	
+	prefs->set("mqtt-server", mqtt_server);
+	Log.notice("saved mqtt-server to eeprom: %s\n", mqtt_server);	
 }
 
