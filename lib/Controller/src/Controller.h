@@ -31,8 +31,8 @@ class Controller : public NetworkModule {
         virtual const char *getTelemetryData();        
 
     private:
-        const int baud_rate = 115200;
-        const uint8_t interruptPin = A4;
+        static const int BAUD_RATE = 115200;
+        static const uint8_t INTERRUPT_PIN = A4;
         const char *root_ca = \
             "-----BEGIN CERTIFICATE-----\n"\
             "MIIDSjCCAjKgAwIBAgIQRK+wgNajJ7qJMDmGLvhAazANBgkqhkiG9w0BAQUFADA/\n"\

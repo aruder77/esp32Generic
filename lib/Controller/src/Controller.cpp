@@ -48,10 +48,10 @@ const char *Controller::getTelemetryData() {
 Controller::Controller()
 {
   // put your setup code here, to run once:
-  Serial.begin(baud_rate);
+  Serial.begin(BAUD_RATE);
   Log.begin(LOG_LEVEL_TRACE, &Serial);
 
-  pinMode(interruptPin, INPUT_PULLUP);  
+  pinMode(INTERRUPT_PIN, INPUT_PULLUP);  
 
   networkControl = NetworkControl::getInstance();
   prefs = Prefs::getInstance();
@@ -65,7 +65,7 @@ void Controller::loop()
   case Runnning_e:
 
       // is configuration portal requested?
-    if ( digitalRead(interruptPin) == LOW ) {
+    if ( digitalRead(INTERRUPT_PIN) == LOW ) {
       ledController->blink();
 
       networkControl->enterConfigPortal();
