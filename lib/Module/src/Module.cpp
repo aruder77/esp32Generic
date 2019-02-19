@@ -21,9 +21,9 @@ void Module::every100Milliseconds() {
 void Module::everySecond() {
 }
 
-void Module::messageReceived(char *topic, char *payload) {
+void Module::messageReceived(const char *topic, const char *payload) {
 }
 
-char * Module::getTelemetryData() {
+const char * Module::getTelemetryData() {
     return "";
 }

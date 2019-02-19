@@ -16,6 +16,7 @@ class LedController {
 
     private:
         static LedController *instance;
+        static const uint8_t STATUS_LED = BUILTIN_LED;
 
         LedController();
 

@@ -27,13 +27,13 @@ class Controller : public NetworkModule {
         void setup();
         void loop();
         
-        virtual void commandReceived(char *command, char *payload);
-        virtual char *getTelemetryData();        
+        virtual void commandReceived(const char *command, const char *payload);
+        virtual const char *getTelemetryData();        
 
     private:
         const int baud_rate = 115200;
         const uint8_t interruptPin = A4;
-        char *root_ca = \
+        const char *root_ca = \
             "-----BEGIN CERTIFICATE-----\n"\
             "MIIDSjCCAjKgAwIBAgIQRK+wgNajJ7qJMDmGLvhAazANBgkqhkiG9w0BAQUFADA/\n"\
             "MSQwIgYDVQQKExtEaWdpdGFsIFNpZ25hdHVyZSBUcnVzdCBDby4xFzAVBgNVBAMT\n"\

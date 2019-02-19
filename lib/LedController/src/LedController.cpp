@@ -14,13 +14,15 @@ LedController* LedController::getInstance()
 }
 
 LedController::LedController() {
+    //set led pin as output
+    pinMode(STATUS_LED, OUTPUT);
 }
 
 void LedController::toggle()
 {
     //toggle state
-    int state = digitalRead(BUILTIN_LED); // get the current state of GPIO1 pin
-    digitalWrite(BUILTIN_LED, !state);    // set pin to the opposite state
+    int state = digitalRead(STATUS_LED); // get the current state of GPIO1 pin
+    digitalWrite(STATUS_LED, !state);    // set pin to the opposite state
 }
 
 void LedController::blink() {
@@ -37,10 +39,10 @@ void LedController::blinkSlow() {
 
 void LedController::on() {        
     ticker.detach();
-    digitalWrite(BUILTIN_LED, HIGH);  
+    digitalWrite(STATUS_LED, HIGH);  
 }
 
 void LedController::off() {
     ticker.detach();
-    digitalWrite(BUILTIN_LED, LOW);  
+    digitalWrite(STATUS_LED, LOW);  
 }

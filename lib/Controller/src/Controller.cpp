@@ -17,7 +17,7 @@ void endDl(void) {
 }
 
 
-void Controller::commandReceived(char *command, char *payload) {
+void Controller::commandReceived(const char *command, const char *payload) {
   if (strncmp(OTA_TOPIC, command, strlen(OTA_TOPIC)) == 0)
   {
     memset(url, 0, 100);
@@ -40,7 +40,7 @@ void Controller::commandReceived(char *command, char *payload) {
   }
 }
 
-char *Controller::getTelemetryData() {
+const char *Controller::getTelemetryData() {
 	return "";
 }
 
@@ -88,7 +88,7 @@ void Controller::loop()
     info.endDownloadCallback = endDl;
     info.progressCallback = progress;
     info.errorCallback = error;
-    info.caCert = root_ca;
+    info.caCert = (char *)root_ca;
     httpFOTA.start(info);
 
     networkControl->send(OTA_TOPIC, "ok");

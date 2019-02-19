@@ -4,8 +4,8 @@
 class NetworkModule {
 
 public:
-    virtual void commandReceived(char *command, char *payload) = 0;
-    virtual char *getTelemetryData() = 0;
+    virtual void commandReceived(const char *command, const char *payload) = 0;
+    virtual const char *getTelemetryData() = 0;
 };
 
 #endif

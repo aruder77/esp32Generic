@@ -9,11 +9,11 @@ class Prefs {
     public:
         static Prefs* getInstance();    
         
-        void set(char *key, char *value);
-        void get(char *key, char *destinationBuffer);
+        void set(const char *key, const char *value);
+        void get(const char *key, char *destinationBuffer);
 
-        void registerConfigParam(char *id, char *prompt, char *defaultValue, int length, Module *module);
-        void configUpdate(char *id, char *value);
+        void registerConfigParam(const char *id, const char *prompt, const char *defaultValue, int length, Module *module);
+        void configUpdate(const char *id, const char *value);
 
     private:
         static const int MAX_NUMBER_OF_CONFIG_ITEMS = 100;
@@ -22,10 +22,10 @@ class Prefs {
         Preferences preferences;   
 
         int numberOfConfigItems = 0;
-        char *configIds[MAX_NUMBER_OF_CONFIG_ITEMS];
+        const char *configIds[MAX_NUMBER_OF_CONFIG_ITEMS];
         Module *modules[MAX_NUMBER_OF_CONFIG_ITEMS];
 
-        Module *getModuleForConfigId(char *configId);
+        Module *getModuleForConfigId(const char *configId);
 };
 
 #endif

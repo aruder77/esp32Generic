@@ -32,13 +32,14 @@ public:
 	void send(const char *topic, const char *message);
 	bool isConnected();
 
-	void registerConfigParam(char *configId, char *prompt, char *defaultValue, int length);
-	void subscribeToCommand(char *command, NetworkModule *networkModule);
+	void registerConfigParam(const char *configId, const char *prompt, const char *defaultValue, int length);
+	void subscribeToCommand(const char *command, NetworkModule *networkModule);
 
 	void enterConfigPortal();
 
 private:
 	static NetworkControl* instance;
+	static const int MAX_NUMBER_OF_SUBSCRIBED_MODULES = 10;
 
 	PubSubClient* mqttClient;
     WiFiManager wifiManager;
@@ -48,13 +49,19 @@ private:
 
 	int loop_counter = 0;
 	char mqtt_server[100];
+
 	short numberOfWifiManagerParams = 0;
 	WiFiManagerParameter* wifiManagerParams[20];
+
+	short numberOfModulesSubscribed = 0;
+    const char *subscribedCommands[MAX_NUMBER_OF_SUBSCRIBED_MODULES];
+	NetworkModule* modules[MAX_NUMBER_OF_SUBSCRIBED_MODULES];
 
 	NetworkControl();
 	void reconnect();
 
 	static void configModeCallback(WiFiManager *myWiFiManager);
+	void notifyModules(const char *commandName, const char *message);
 };
 
 #endif /* NETWORKCONTROL_H_ */

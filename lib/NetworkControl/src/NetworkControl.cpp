@@ -95,13 +95,27 @@ void NetworkControl::messageReceived(const char *topic, const char *message) {
 	Log.notice("Message received [%s]: %s\n", topic, message);
 
 	if (strncmp(topic, "cmnd/", 5) == 0) {
-		int idxSndSlash = strchr(topic + 5, '/') - topic;
-		
-	} else if (strncmp(topic, "config/", 7)) {
-		int idxSndSlash = strchr(topic + 7, '/') - topic;
-
+		const char *commandName = strchr(topic + 5, '/') + 1;
+		notifyModules(commandName, message);
+	} else if (strncmp(topic, "config/", 7) == 0) {
+		char *parameterName = strchr(topic + 7, '/') + 1;
+		prefs->configUpdate(parameterName, message);
 	}
 }
+
+void NetworkControl::notifyModules(const char *commandName, const char *message) {
+	for (int i = 0; i < numberOfModulesSubscribed; i++) {
+		if (strcmp(commandName, subscribedCommands[i]) == 0) {
+			modules[i]->commandReceived(commandName, message);
+		}
+	}
+}
+
+void NetworkControl::subscribeToCommand(const char *command, NetworkModule *networkModule) {
+	subscribedCommands[numberOfModulesSubscribed] = command;
+	modules[numberOfModulesSubscribed++] = networkModule;
+}
+
 
 
 void NetworkControl::send(const char *topic, const char *message) {
@@ -117,7 +131,7 @@ bool NetworkControl::isConnected() {
 	return mqttClient->connected();
 }
 
-void NetworkControl::registerConfigParam(char *configId, char *prompt, char *defaultValue, int length) {
+void NetworkControl::registerConfigParam(const char *configId, const char *prompt, const char *defaultValue, int length) {
 	WiFiManagerParameter *param = new WiFiManagerParameter(configId, prompt, defaultValue, length);
 	wifiManagerParams[numberOfWifiManagerParams++] = param;
 }
