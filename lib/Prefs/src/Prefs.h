@@ -2,7 +2,7 @@
 #define PREFS_H_
 
 #include <Preferences.h>
-#include "Module.h"
+#include <Module.h>
 
 class Prefs {
 

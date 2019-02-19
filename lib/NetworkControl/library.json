@@ -1,0 +1,5 @@
+{
+  "name": "NetworkControl",
+  "frameworks": "arduino",
+  "platforms": "espressif32"
+}

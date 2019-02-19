@@ -1,5 +1,5 @@
-#include "Prefs.h"
-#include "NetworkControl.h"
+#include <Prefs.h>
+#include <NetworkControl.h>
 
 Prefs *Prefs::instance = 0;
 

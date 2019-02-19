@@ -1,0 +1,5 @@
+{
+  "name": "Controller",
+  "frameworks": "arduino",
+  "platforms": "espressif32"
+}
