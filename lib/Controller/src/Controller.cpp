@@ -18,8 +18,7 @@ void endDl(void) {
 
 
 void Controller::commandReceived(const char *command, const char *payload) {
-  if (strcmp(OTA_TOPIC, command) == 0)
-  {
+  if (strcmp(OTA_TOPIC, command) == 0) {
     memset(url, 0, 100);
     memset(md5_check, 0, 50);
     char *tmp = strstr(payload, "url:");
@@ -56,6 +55,8 @@ Controller::Controller()
   networkControl = NetworkControl::getInstance();
   prefs = Prefs::getInstance();
   ledController = LedController::getInstance();
+
+  networkControl->subscribeToCommand(OTA_TOPIC, this);
 }
 
 void Controller::loop()
@@ -66,26 +67,30 @@ void Controller::loop()
 
       // is configuration portal requested?
     if ( digitalRead(INTERRUPT_PIN) == LOW ) {
-      ledController->blink();
-
       networkControl->enterConfigPortal();
 
       //if you get here you have connected to the WiFi
       Log.notice("connected...yeey :)\n");
-      ledController->on();     
     }
 
     networkControl->loop();
     break;
   case Fota_e:
+    ledController->blinkSlow();
+
     DlInfo info;
-    info.url = url;
-    info.md5 = md5_check;
+    char urlStr[100];
+    strcpy(urlStr, url);
+    info.url = urlStr;
+    char md5Str[50];
+    strcpy(md5Str, md5_check);
+    info.md5 = md5Str;
     info.startDownloadCallback = startDl;
     info.endDownloadCallback = endDl;
     info.progressCallback = progress;
     info.errorCallback = error;
-    info.caCert = (char *)root_ca;
+    info.caCert = NULL;
+    Log.notice("starting ota update!\n");
     httpFOTA.start(info);
 
     networkControl->send(OTA_TOPIC, "ok");
