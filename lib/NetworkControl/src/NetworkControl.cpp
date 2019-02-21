@@ -33,29 +33,29 @@ NetworkControl* NetworkControl::getInstance()
 }
 
 NetworkControl::NetworkControl() {
-		Log.notice("Initializing NetworkControl\n");
+	Log.notice("Initializing NetworkControl\n");
 
   	WiFiClient *espClient = new WiFiClient();
   	mqttClient = new PubSubClient(*espClient);
 
-		prefs = Prefs::getInstance();
-		ledController = LedController::getInstance();
+	prefs = Prefs::getInstance();
+	ledController = LedController::getInstance();
 
-		mqttClient->setCallback(callback);
+	mqttClient->setCallback(callback);
 
-		Prefs::getInstance()->get("mqtt-server", mqtt_server);
-		Log.notice("loaded mqtt-server from eeprom: %s\n", mqtt_server);
-		mqttClient->setServer(mqtt_server, 1883);
+	Prefs::getInstance()->get("mqtt-server", mqtt_server);
+	Log.notice("loaded mqtt-server from eeprom: %s\n", mqtt_server);
+	mqttClient->setServer(mqtt_server, 1883);
 
   	if (wifiManager.autoConnect()) {
-    		//keep LED on
-    		ledController->on();        
+		//keep LED on
+		ledController->on();        
   	}
 
-		// Allow the hardware to sort itself out
-		delay(1500);
-		Log.notice("finished initializing NetworkControl\n");
-		reconnect();
+	// Allow the hardware to sort itself out
+	delay(1500);
+	Log.notice("finished initializing NetworkControl\n");
+	reconnect();
 }
 
 NetworkControl::~NetworkControl() {
@@ -64,13 +64,15 @@ NetworkControl::~NetworkControl() {
 void NetworkControl::reconnect() {
 	// Loop until we're reconnected
 	if (!mqttClient->connected()) {
-			Log.notice("Attempting MQTT connection...\n");
-			// Attempt to connect
-			if (mqttClient->connect("arduinoClient")) {
-				Log.notice("connected\n");
-			} else {
-				Log.error("failed, rc=%d try again in 5 minutes\n", mqttClient->state());
-			}
+		Log.notice("Attempting MQTT connection...\n");
+		// Attempt to connect
+		char mqtt_clientId[50];
+		Prefs::getInstance()->get("mqtt-clientId", mqtt_clientId);
+		if (mqttClient->connect(mqtt_clientId)) {
+			Log.notice("connected\n");
+		} else {
+			Log.error("failed, rc=%d try again in 5 minutes\n", mqttClient->state());
+		}
 	}
 }
 
