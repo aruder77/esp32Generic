@@ -9,7 +9,6 @@ class MessageDispatcher {
 
 public:
 	void messageReceived(const char *topic, const char *message);
-	void registerConfigParam(const char *configId, const char *prompt, const char *defaultValue, int length);
 	void subscribeToCommand(const char *command, NetworkModule *networkModule);
 
 private:

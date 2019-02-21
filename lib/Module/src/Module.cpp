@@ -27,3 +27,6 @@ void Module::messageReceived(const char *topic, const char *payload) {
 const char * Module::getTelemetryData() {
     return "";
 }
+
+void Module::configUpdate(const char *id, const char *value) {
+}

@@ -1,6 +1,7 @@
 #include <Prefs.h>
 #include <NetworkControl.h>
 
+
 Prefs *Prefs::instance = 0;
 
 Prefs* Prefs::getInstance()
@@ -13,6 +14,9 @@ Prefs* Prefs::getInstance()
 	}
 	return Prefs::instance;
 }
+
+Prefs::Prefs() {
+} 
 
 
 void Prefs::set(const char *key, const char *value) {
@@ -28,12 +32,15 @@ void Prefs::get(const char *key, char *destinationBuffer) {
 }
 
 void Prefs::registerConfigParam(const char *id, const char *prompt, const char *defaultValue, int length, Module *module) {
-    configIds[numberOfConfigItems] = id;
+    PrefsItem prefsItem;
+    strcpy(prefsItem.id, id);
+    strcpy(prefsItem.prompt, prompt);
+    strcpy(prefsItem.defaultValue, defaultValue);
+    prefsItems[numberOfConfigItems] = prefsItem;
     modules[numberOfConfigItems] = module;
     numberOfConfigItems++;
-
-    NetworkControl::getInstance()->registerConfigParam(id, prompt, defaultValue, length);
 }
+
 
 void Prefs::configUpdate(const char *id, const char *value) {
     set(id, value);

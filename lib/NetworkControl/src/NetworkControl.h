@@ -22,7 +22,7 @@
 #define RECONNECT_LOOP_COUNT 100
 
 
-class NetworkControl {
+class NetworkControl : public Module {
 public:
 	virtual ~NetworkControl();
     static NetworkControl* getInstance();
@@ -33,7 +33,6 @@ public:
 	void send(const char *topic, const char *message);
 	bool isConnected();
 
-	void registerConfigParam(const char *configId, const char *prompt, const char *defaultValue, int length);
 	void subscribeToCommand(const char *command, NetworkModule *networkModule);
 
 	void enterConfigPortal();
