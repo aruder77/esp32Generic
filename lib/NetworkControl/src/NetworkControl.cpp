@@ -43,7 +43,8 @@ NetworkControl::NetworkControl() {
 	ledController = LedController::getInstance();
 
 	// initialize prefs
-	prefs->registerConfigParam("MQTT-Server", "MQTT-Server", "", 100, this);
+	prefs->registerConfigParam("clientId", "Client-ID", "esp32Generic", 100, this);
+	prefs->registerConfigParam("mqtt-server", "MQTT-Server", "mqtt-server", 100, this);
 
 	mqttClient->setCallback(callback);
 
@@ -75,9 +76,9 @@ void NetworkControl::reconnect()
 	{
 		Log.notice("Attempting MQTT connection...\n");
 		// Attempt to connect
-		char mqtt_clientId[50];
-		Prefs::getInstance()->get("mqtt-clientId", mqtt_clientId);
-		if (mqttClient->connect(mqtt_clientId))	
+		char clientId[50] = {0};
+		prefs->get("clientId", clientId);
+		if (mqttClient->connect(clientId))	
 		{
 			Log.notice("connected\n");
 			mqttClient->subscribe("cmnd/esp32generic/#");
@@ -138,23 +139,42 @@ void NetworkControl::configModeCallback(WiFiManager *myWiFiManager)
 	LedController::getInstance()->blink();
 }
 
+//gets called when WiFiManager saves config
+void NetworkControl::saveConfigCallback()
+{
+	Log.notice("Saving WifiManager config.\n");
+	for (int i = 0; i < wifiParamCount; i++)
+	{
+		Log.notice("saving value %s for key %s in prefs.\n", params[i]->getValue(), params[i]->getID());
+		Prefs::getInstance()->set(params[i]->getID(), params[i]->getValue());
+	}	
+}
+
 void NetworkControl::enterConfigPortal()
 {
+	Log.notice("entering config portal mode...\n");
 	ledController->blink();
 
 	//set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
 	wifiManager.setAPCallback(configModeCallback);
+	wifiManager.setSaveConfigCallback(saveConfigCallback);
 
-	// id/name, placeholder/prompt, default, length
-	WiFiManagerParameter custom_mqtt_server("server", "mqtt server", "", 40);
-	wifiManager.addParameter(&custom_mqtt_server);
+	PrefsItems *prefsItems = prefs->getPrefsItems();
 
-	for (int i = 0; i < numberOfWifiManagerParams; i++)
+	Log.notice("number of config items: %d\n", prefsItems->length);
+	params = new WiFiManagerParameter*[prefsItems->length];
+	wifiParamCount = prefsItems->length;
+
+	for (int i = 0; i < prefsItems->length; i++)
 	{
-		wifiManager.addParameter(wifiManagerParams[i]);
+		Log.notice("adding config item %s\n", prefsItems->prefsItems[i]->id);
+		params[i] = new WiFiManagerParameter(prefsItems->prefsItems[i]->id, prefsItems->prefsItems[i]->prompt, prefsItems->prefsItems[i]->defaultValue, prefsItems->prefsItems[i]->length);
+		wifiManager.addParameter(params[i]);
 	}
 
-	if (!wifiManager.startConfigPortal("OnDemandAP", "geheim"))
+	char clientId[50];
+	prefs->get("clientId", clientId);
+	if (!wifiManager.startConfigPortal(clientId, "geheim"))
 	{
 		Log.warning("failed to connect and hit timeout\n");
 		delay(3000);
@@ -163,11 +183,11 @@ void NetworkControl::enterConfigPortal()
 		delay(5000);
 	}
 
-	strcpy(mqtt_server, custom_mqtt_server.getValue());
-	mqttClient->setServer(mqtt_server, 1883);
+	char buffer[100];
+	prefs->get("mqtt-server", buffer);
+	mqttClient->setServer(buffer, 1883);
 
-	prefs->set("mqtt-server", mqtt_server);
-	Log.notice("saved mqtt-server to eeprom: %s\n", mqtt_server);
+	Log.notice("saved mqtt-server to eeprom: %s\n", buffer);
 
 	ledController->on();     
 }

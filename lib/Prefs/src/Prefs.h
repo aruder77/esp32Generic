@@ -4,11 +4,19 @@
 #include <Preferences.h>
 #include <Module.h>
 
+#define MAX_NUMBER_OF_CONFIG_ITEMS 100
+
 struct PrefsItem {
-	char id[50];
-	char prompt[100];
-    char defaultValue[100];
-	int length;
+	char id[50] = {0};
+	char prompt[100] = {0};
+    char defaultValue[100] = {0};
+	int length = 0;
+    Module *module;
+};
+
+struct PrefsItems {
+    PrefsItem *prefsItems[MAX_NUMBER_OF_CONFIG_ITEMS];
+    int length;
 };
 
 class Prefs {
@@ -23,17 +31,16 @@ class Prefs {
         void registerConfigParam(const char *id, const char *prompt, const char *defaultValue, int length, Module *module);
         void configUpdate(const char *id, const char *value);
 
-        PrefsItem** getPrefsItems();
+        PrefsItems *getPrefsItems();
+        PrefsItem *getPrefsItem(const char *configId);
 
     private:
-        static const int MAX_NUMBER_OF_CONFIG_ITEMS = 100;
 	    static Prefs* instance;
 
         Preferences preferences;   
 
         int numberOfConfigItems = 0;
-        PrefsItem prefsItems[MAX_NUMBER_OF_CONFIG_ITEMS];
-        Module *modules[MAX_NUMBER_OF_CONFIG_ITEMS];
+        PrefsItems *prefsItems;
 
         Module *getModuleForConfigId(const char *configId);
 };

@@ -28,6 +28,9 @@ public:
     static NetworkControl* getInstance();
     static bool exists();
 
+	static WiFiManagerParameter **params;
+	static int wifiParamCount;
+
 	void loop();
 	void messageReceived(const char *topic, const char *message);
 	void send(const char *topic, const char *message);
@@ -48,15 +51,13 @@ private:
 	MessageDispatcher* messageDispatcher = new MessageDispatcher();
 
 	int loop_counter = 0;
-	char mqtt_server[100];
-
-	short numberOfWifiManagerParams = 0;
-	WiFiManagerParameter* wifiManagerParams[20];
+	char mqtt_server[100] = {0};
 
 	NetworkControl();
 	void reconnect();
 
 	static void configModeCallback(WiFiManager *myWiFiManager);
+	static void saveConfigCallback();
 };
 
 #endif /* NETWORKCONTROL_H_ */
