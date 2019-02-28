@@ -44,6 +44,7 @@ void Prefs::registerConfigParam(const char *id, const char *prompt, const char *
     strcpy(prefsItem->id, id);
     strcpy(prefsItem->prompt, prompt);
     strcpy(prefsItem->defaultValue, defaultValue);
+    prefsItem->length = length;
     prefsItems->prefsItems[numberOfConfigItems]->module = module;
 
     Log.notice("registering %d with key %s with default value %s\n", numberOfConfigItems, prefsItems->prefsItems[numberOfConfigItems]->id, prefsItems->prefsItems[numberOfConfigItems]->defaultValue);

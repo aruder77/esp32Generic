@@ -140,14 +140,7 @@ void NetworkControl::configModeCallback(WiFiManager *myWiFiManager)
 }
 
 //gets called when WiFiManager saves config
-void NetworkControl::saveConfigCallback()
-{
-	Log.notice("Saving WifiManager config.\n");
-	for (int i = 0; i < wifiParamCount; i++)
-	{
-		Log.notice("saving value %s for key %s in prefs.\n", params[i]->getValue(), params[i]->getID());
-		Prefs::getInstance()->set(params[i]->getID(), params[i]->getValue());
-	}	
+void NetworkControl::saveConfigCallback() {
 }
 
 void NetworkControl::enterConfigPortal()
@@ -162,10 +155,10 @@ void NetworkControl::enterConfigPortal()
 	PrefsItems *prefsItems = prefs->getPrefsItems();
 
 	Log.notice("number of config items: %d\n", prefsItems->length);
-	params = new WiFiManagerParameter*[prefsItems->length];
 	wifiParamCount = prefsItems->length;
+	params = new WiFiManagerParameter*[wifiParamCount];
 
-	for (int i = 0; i < prefsItems->length; i++)
+	for (int i = 0; i < wifiParamCount; i++)
 	{
 		Log.notice("adding config item %s\n", prefsItems->prefsItems[i]->id);
 		params[i] = new WiFiManagerParameter(prefsItems->prefsItems[i]->id, prefsItems->prefsItems[i]->prompt, prefsItems->prefsItems[i]->defaultValue, prefsItems->prefsItems[i]->length);
@@ -174,13 +167,18 @@ void NetworkControl::enterConfigPortal()
 
 	char clientId[50];
 	prefs->get("clientId", clientId);
-	if (!wifiManager.startConfigPortal(clientId, "geheim"))
+	if (!wifiManager.startConfigPortal("axelsEsp", "geheim"))
 	{
 		Log.warning("failed to connect and hit timeout\n");
 		delay(3000);
 		//reset and try again, or maybe put it to deep sleep
 		ESP.restart();
 		delay(5000);
+	}
+
+	for (int i = 0; i < wifiParamCount; i++) {
+		Log.notice("saving wifiParam[%d] to prefs: %s, %s\n", i, params[i]->getID(), params[i]->getValue());
+		prefs->set(params[i]->getID(), params[i]->getValue());
 	}
 
 	char buffer[100];
