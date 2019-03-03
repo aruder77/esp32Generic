@@ -75,7 +75,7 @@ void Controller::loop()
   case Runnning_e:
 
       // is configuration portal requested?
-    if ( digitalRead(INTERRUPT_PIN) == LOW && false) {
+    if ( digitalRead(INTERRUPT_PIN) == LOW) {
       networkControl->enterConfigPortal();
 
       //if you get here you have connected to the WiFi
