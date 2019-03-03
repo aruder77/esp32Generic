@@ -19,7 +19,7 @@ typedef enum
 } SysState;
 
 
-class Controller : public NetworkModule {
+class Controller : public NetworkModule, public PrefsClient {
     public:
         Controller();
         ~Controller();
@@ -28,11 +28,12 @@ class Controller : public NetworkModule {
         void loop();
         
         virtual void commandReceived(const char *command, const char *payload);
-        virtual const char *getTelemetryData();        
+        virtual const char *getTelemetryData();  
+        
+        virtual void configUpdate(const char *id, const char *value);          
 
     private:
         static const int BAUD_RATE = 115200;
-        static const uint8_t INTERRUPT_PIN = A4;
         const char *root_ca = \
             "-----BEGIN CERTIFICATE-----\n"\
             "MIIDSjCCAjKgAwIBAgIQRK+wgNajJ7qJMDmGLvhAazANBgkqhkiG9w0BAQUFADA/\n"\
@@ -62,6 +63,8 @@ class Controller : public NetworkModule {
         char url[100];
         char md5_check[50];
         SysState state = Runnning_e;
+
+        uint8_t enterConfigPortalPin = A4;
 };
 
 #endif

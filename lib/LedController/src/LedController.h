@@ -3,8 +3,9 @@
 
 #include <Arduino.h>
 #include <Ticker.h>
+#include <Prefs.h>
 
-class LedController {
+class LedController : public PrefsClient {
     public:
         static LedController *getInstance();
 
@@ -14,13 +15,16 @@ class LedController {
         void on();
         void off();
 
+        void configUpdate(const char *key, const char *value);
+
     private:
         static LedController *instance;
-        static const uint8_t STATUS_LED = GPIO_NUM_2;
 
         LedController();
 
         Ticker ticker;
+        Prefs *prefs = Prefs::getInstance();
+        uint8_t statusLedPin;
 
         static void toggle();
 };

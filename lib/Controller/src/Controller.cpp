@@ -50,11 +50,12 @@ Controller::Controller()
   Serial.begin(BAUD_RATE);
   Log.begin(LOG_LEVEL_TRACE, &Serial);
 
-  pinMode(INTERRUPT_PIN, INPUT_PULLUP);  
-
   prefs = Prefs::getInstance();
   Log.notice("Controller Prefs %d\n", prefs);
   ledController = LedController::getInstance();
+
+  // register prefs
+  prefs->registerConfigParam("ConfigPortalPin", "Config-Portal Pin", "32", 3, this);
 
   // create all modules 
   networkControl = NetworkControl::getInstance();
@@ -63,6 +64,9 @@ Controller::Controller()
 }
 
 void Controller::setup() {
+  enterConfigPortalPin = prefs->getInt("ConfigPortalPin");
+  pinMode(enterConfigPortalPin, INPUT_PULLUP);  
+
   networkControl->subscribeToCommand(OTA_TOPIC, this);
 
   networkControl->setup();
@@ -75,7 +79,7 @@ void Controller::loop()
   case Runnning_e:
 
       // is configuration portal requested?
-    if ( digitalRead(INTERRUPT_PIN) == LOW) {
+    if ( digitalRead(enterConfigPortalPin) == LOW) {
       networkControl->enterConfigPortal();
 
       //if you get here you have connected to the WiFi
@@ -107,4 +111,8 @@ void Controller::loop()
   default:
     break;
   }
+}
+
+void Controller::configUpdate(const char *id, const char *value) {
+    enterConfigPortalPin = atoi(value);
 }

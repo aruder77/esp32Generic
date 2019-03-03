@@ -27,6 +27,12 @@ void Prefs::set(const char *key, const char *value) {
     preferences.end();
 } 
 
+void Prefs::setInt(const char *key, int value) {
+    char strValue[7];
+    itoa(value, strValue, 10);
+    set(key, strValue);
+}
+
 void Prefs::get(const char *key, char *destinationBuffer) {
     preferences.begin("esp32Generic", true);
     strcpy(destinationBuffer, preferences.getString(key).c_str());
@@ -38,14 +44,20 @@ void Prefs::get(const char *key, char *destinationBuffer) {
     preferences.end();    
 }
 
-void Prefs::registerConfigParam(const char *id, const char *prompt, const char *defaultValue, int length, Module *module) {
+int Prefs::getInt(const char *key) {
+    char strValue[7];
+    get(key, strValue);
+    return atoi(strValue);
+}
+
+void Prefs::registerConfigParam(const char *id, const char *prompt, const char *defaultValue, int length, PrefsClient *prefsClient) {
     PrefsItem *prefsItem = new PrefsItem();
     prefsItems->prefsItems[numberOfConfigItems] = prefsItem;
     strcpy(prefsItem->id, id);
     strcpy(prefsItem->prompt, prompt);
     strcpy(prefsItem->defaultValue, defaultValue);
     prefsItem->length = length;
-    prefsItems->prefsItems[numberOfConfigItems]->module = module;
+    prefsItems->prefsItems[numberOfConfigItems]->prefsClient = prefsClient;
 
     Log.notice("registering %d with key %s with default value %s\n", numberOfConfigItems, prefsItems->prefsItems[numberOfConfigItems]->id, prefsItems->prefsItems[numberOfConfigItems]->defaultValue);
 
@@ -55,15 +67,15 @@ void Prefs::registerConfigParam(const char *id, const char *prompt, const char *
 
 
 void Prefs::configUpdate(const char *id, const char *value) {
-    Module *module = getModuleForConfigId(id);
-    module->configUpdate(id, value);
+    PrefsClient *prefsClient = getPrefsClientForConfigId(id);
+    prefsClient->configUpdate(id, value);
     set(id, value);
 }
 
-Module *Prefs::getModuleForConfigId(const char *configId) {
+PrefsClient *Prefs::getPrefsClientForConfigId(const char *configId) {
     for (int i = 0; i < numberOfConfigItems; i++) {
         if (strcmp(configId, prefsItems->prefsItems[i]->id)) {
-            return prefsItems->prefsItems[i]->module;
+            return prefsItems->prefsItems[i]->prefsClient;
         }
     }
     return NULL;

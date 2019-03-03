@@ -14,15 +14,20 @@ LedController* LedController::getInstance()
 }
 
 LedController::LedController() {
+    prefs->registerConfigParam("StatusLedPin", "Status-LED Pin", "2", 3, this);
+
+    statusLedPin = prefs->getInt("StatusLedPin");
+
     //set led pin as output
-    pinMode(STATUS_LED, OUTPUT);
+    pinMode(statusLedPin, OUTPUT);
 }
 
 void LedController::toggle()
 {
     //toggle state
-    int state = digitalRead(STATUS_LED); // get the current state of GPIO1 pin
-    digitalWrite(STATUS_LED, !state);    // set pin to the opposite state
+    int pin = LedController::getInstance()->statusLedPin;
+    int state = digitalRead(pin); // get the current state of GPIO1 pin
+    digitalWrite(pin, !state);    // set pin to the opposite state
 }
 
 void LedController::blink() {
@@ -39,10 +44,14 @@ void LedController::blinkSlow() {
 
 void LedController::on() {        
     ticker.detach();
-    digitalWrite(STATUS_LED, HIGH);  
+    digitalWrite(statusLedPin, HIGH);  
 }
 
 void LedController::off() {
     ticker.detach();
-    digitalWrite(STATUS_LED, LOW);  
+    digitalWrite(statusLedPin, LOW);  
+}
+
+void LedController::configUpdate(const char *key, const char *value) {
+    statusLedPin = atoi(value);
 }

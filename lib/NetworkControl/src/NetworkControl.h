@@ -22,7 +22,7 @@
 #define RECONNECT_LOOP_COUNT 100
 
 
-class NetworkControl : public Module {
+class NetworkControl : public Module, public PrefsClient {
 public:
 	virtual ~NetworkControl();
     static NetworkControl* getInstance();
