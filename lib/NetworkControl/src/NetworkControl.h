@@ -28,6 +28,7 @@ public:
     static NetworkControl* getInstance();
     static bool exists();
 
+	void setup();
 	void loop();
 	void messageReceived(const char *topic, const char *message);
 	void send(const char *topic, const char *message);
@@ -36,6 +37,7 @@ public:
 	void subscribeToCommand(const char *command, NetworkModule *networkModule);
 
 	void enterConfigPortal();
+    void configUpdate(const char *id, const char *value);
 
 private:
 	static NetworkControl* instance;
@@ -55,6 +57,8 @@ private:
 
 	NetworkControl();
 	void reconnect();
+	void subscribeTopic(const char *clientId);
+	void unsubscribeTopic(const char *clientId);
 
 	static void configModeCallback(WiFiManager *myWiFiManager);
 	static void saveConfigCallback();

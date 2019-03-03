@@ -8,7 +8,7 @@ void MessageDispatcher::messageReceived(const char *topic, const char *message) 
 		notifyModules(commandName, message);
 	} else if (strncmp(topic, "config/", 7) == 0) {
 		char *parameterName = strchr(topic + 7, '/') + 1;
-		prefs.configUpdate(parameterName, message);
+		prefs->configUpdate(parameterName, message);
 	}
 }
 

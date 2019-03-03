@@ -55,9 +55,9 @@ void Prefs::registerConfigParam(const char *id, const char *prompt, const char *
 
 
 void Prefs::configUpdate(const char *id, const char *value) {
-    set(id, value);
     Module *module = getModuleForConfigId(id);
     module->configUpdate(id, value);
+    set(id, value);
 }
 
 Module *Prefs::getModuleForConfigId(const char *configId) {

@@ -52,11 +52,20 @@ Controller::Controller()
 
   pinMode(INTERRUPT_PIN, INPUT_PULLUP);  
 
-  networkControl = NetworkControl::getInstance();
   prefs = Prefs::getInstance();
+  Log.notice("Controller Prefs %d\n", prefs);
   ledController = LedController::getInstance();
 
+  // create all modules 
+  networkControl = NetworkControl::getInstance();
+
+  setup();
+}
+
+void Controller::setup() {
   networkControl->subscribeToCommand(OTA_TOPIC, this);
+
+  networkControl->setup();
 }
 
 void Controller::loop()
@@ -66,7 +75,7 @@ void Controller::loop()
   case Runnning_e:
 
       // is configuration portal requested?
-    if ( digitalRead(INTERRUPT_PIN) == LOW ) {
+    if ( digitalRead(INTERRUPT_PIN) == LOW && false) {
       networkControl->enterConfigPortal();
 
       //if you get here you have connected to the WiFi

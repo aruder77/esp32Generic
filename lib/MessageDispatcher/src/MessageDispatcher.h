@@ -14,7 +14,7 @@ public:
 private:
 	static const int MAX_NUMBER_OF_SUBSCRIBED_MODULES = 10;
 
-	Prefs prefs;
+	Prefs *prefs = Prefs::getInstance();
 
 	short numberOfModulesSubscribed = 0;
     const char *subscribedCommands[MAX_NUMBER_OF_SUBSCRIBED_MODULES];

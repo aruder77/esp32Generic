@@ -18,7 +18,9 @@ void callback(char *topic, byte *payload, unsigned int length)
 		data[i] = (char)payload[i];
 	}
 	data[length] = 0;
-	NetworkControl::getInstance()->messageReceived(topic, data);
+	char topicCopy[strlen(topic) + 1];
+	strcpy(topicCopy, topic);
+	NetworkControl::getInstance()->messageReceived(topicCopy, data);
 }
 
 NetworkControl *NetworkControl::getInstance()
@@ -40,10 +42,12 @@ NetworkControl::NetworkControl() {
 	mqttClient = new PubSubClient(*espClient);
 
 	prefs = Prefs::getInstance();
+	Log.notice("NetworkControl Prefs %d\n", prefs);
 	ledController = LedController::getInstance();
 
 	// initialize prefs
 	prefs->registerConfigParam("clientId", "Client-ID", "esp32Generic", 100, this);
+	prefs->registerConfigParam("wpaKey", "WPA-Key", "~CM3CDUx", 100, this);
 	prefs->registerConfigParam("mqtt-server", "MQTT-Server", "mqtt-server", 100, this);
 
 	mqttClient->setCallback(callback);
@@ -51,6 +55,29 @@ NetworkControl::NetworkControl() {
 	prefs->get("mqtt-server", mqtt_server);
 	Log.notice("loaded mqtt-server from eeprom: %s\n", mqtt_server);
 	mqttClient->setServer(mqtt_server, 1883);
+}
+
+NetworkControl::~NetworkControl()
+{
+}
+
+void NetworkControl::setup() {
+	//set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
+	wifiManager.setAPCallback(configModeCallback);
+	wifiManager.setSaveConfigCallback(saveConfigCallback);
+
+	PrefsItems *prefsItems = prefs->getPrefsItems();
+
+	Log.notice("number of config items: %d\n", prefsItems->length);
+	wifiParamCount = prefsItems->length;
+	params = new WiFiManagerParameter*[wifiParamCount];
+
+	for (int i = 0; i < wifiParamCount; i++)
+	{
+		Log.notice("adding config item %s\n", prefsItems->prefsItems[i]->id);
+		params[i] = new WiFiManagerParameter(prefsItems->prefsItems[i]->id, prefsItems->prefsItems[i]->prompt, prefsItems->prefsItems[i]->defaultValue, prefsItems->prefsItems[i]->length);
+		wifiManager.addParameter(params[i]);
+	}
 
 	ledController->blinkFast();
 	if (wifiManager.autoConnect())
@@ -65,8 +92,32 @@ NetworkControl::NetworkControl() {
 	reconnect();
 }
 
-NetworkControl::~NetworkControl()
-{
+void NetworkControl::subscribeTopic(const char *clientId) {
+	char cmndTopic[100];
+	sprintf(cmndTopic, "cmnd/%s/#", clientId);
+	mqttClient->subscribe(cmndTopic);
+
+	char configTopic[100];
+	sprintf(configTopic, "config/%s/#", clientId);
+	mqttClient->subscribe(configTopic);
+
+	char statusTopic[100];
+	sprintf(statusTopic, "tele/%s/status", clientId);
+	send(statusTopic, "Hello, world!");	
+}
+
+void NetworkControl::unsubscribeTopic(const char *clientId) {
+	char cmndTopic[100];
+	sprintf(cmndTopic, "cmnd/%s/#", clientId);
+	mqttClient->unsubscribe(cmndTopic);
+
+	char configTopic[100];
+	sprintf(configTopic, "config/%s/#", clientId);
+	mqttClient->unsubscribe(configTopic);
+
+	char statusTopic[100];
+	sprintf(statusTopic, "tele/%s/status", clientId);
+	send(statusTopic, "Bye bye!");	
 }
 
 void NetworkControl::reconnect()
@@ -81,9 +132,7 @@ void NetworkControl::reconnect()
 		if (mqttClient->connect(clientId))	
 		{
 			Log.notice("connected\n");
-			mqttClient->subscribe("cmnd/esp32generic/#");
-			mqttClient->subscribe("config/esp32generic/#");
-			send("tele/esp32generic/status", "Hello, world!");
+			subscribeTopic(clientId);
 		}
 		else
 		{
@@ -148,26 +197,11 @@ void NetworkControl::enterConfigPortal()
 	Log.notice("entering config portal mode...\n");
 	ledController->blink();
 
-	//set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
-	wifiManager.setAPCallback(configModeCallback);
-	wifiManager.setSaveConfigCallback(saveConfigCallback);
-
-	PrefsItems *prefsItems = prefs->getPrefsItems();
-
-	Log.notice("number of config items: %d\n", prefsItems->length);
-	wifiParamCount = prefsItems->length;
-	params = new WiFiManagerParameter*[wifiParamCount];
-
-	for (int i = 0; i < wifiParamCount; i++)
-	{
-		Log.notice("adding config item %s\n", prefsItems->prefsItems[i]->id);
-		params[i] = new WiFiManagerParameter(prefsItems->prefsItems[i]->id, prefsItems->prefsItems[i]->prompt, prefsItems->prefsItems[i]->defaultValue, prefsItems->prefsItems[i]->length);
-		wifiManager.addParameter(params[i]);
-	}
-
 	char clientId[50];
+	char wpaKey[100];
 	prefs->get("clientId", clientId);
-	if (!wifiManager.startConfigPortal("axelsEsp", "geheim"))
+	prefs->get("wpaKey", wpaKey);
+	if (!wifiManager.startConfigPortal(clientId, wpaKey))
 	{
 		Log.warning("failed to connect and hit timeout\n");
 		delay(3000);
@@ -189,3 +223,14 @@ void NetworkControl::enterConfigPortal()
 
 	ledController->on();     
 }
+
+void NetworkControl::configUpdate(const char *id, const char *value) {
+	Log.notice("NetworkControl: config update received: %s, %s\n", id, value);
+	if (strcmp(id, "clientId") == 0) {
+		char clientId[50];
+		prefs->get("clientId", clientId);
+		unsubscribeTopic(clientId);
+		subscribeTopic(value);
+	}
+}
+
