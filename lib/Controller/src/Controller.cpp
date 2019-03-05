@@ -59,6 +59,7 @@ Controller::Controller()
 
   // create all modules 
   networkControl = NetworkControl::getInstance();
+  heatingController = new HeatingController();
 
   setup();
 }
@@ -70,6 +71,8 @@ void Controller::setup() {
   networkControl->subscribeToCommand(OTA_TOPIC, this);
 
   networkControl->setup();
+
+  heatingController->setup();
 }
 
 void Controller::loop()
@@ -87,6 +90,9 @@ void Controller::loop()
     }
 
     networkControl->loop();
+
+    heatingController->loop();
+    
     break;
   case Fota_e:
     ledController->blinkSlow();

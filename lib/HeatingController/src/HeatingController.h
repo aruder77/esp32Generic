@@ -4,6 +4,7 @@
 #include <Module.h>
 #include <Prefs.h>
 #include <ArduinoLog.h>
+#include <driver/adc.h>
 
 class HeatingController : public Module, public PrefsClient {
 
@@ -11,6 +12,7 @@ class HeatingController : public Module, public PrefsClient {
         HeatingController();
 
         void setup();
+        void loop();
         void everySecond();
 
         void configUpdate(const char *id, const char *value);
@@ -18,6 +20,8 @@ class HeatingController : public Module, public PrefsClient {
     private:
         Prefs *prefs = Prefs::getInstance();
         int atFuehlerPin = 34;
-}
+
+        unsigned long timer = 0;
+};
 
 #endif

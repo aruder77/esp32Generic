@@ -8,6 +8,7 @@
 #include <Prefs.h>
 #include <LedController.h>
 #include <NetworkModule.h>
+#include <HeatingController.h>
 
 /* topics */
 #define OTA_TOPIC "ota"
@@ -59,6 +60,7 @@ class Controller : public NetworkModule, public PrefsClient {
         NetworkControl* networkControl;
         Prefs* prefs;
         LedController* ledController;
+        HeatingController* heatingController;
 
         char url[100];
         char md5_check[50];
