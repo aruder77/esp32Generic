@@ -47,4 +47,5 @@ void HeatingController::everySecond() {
     vfTemp = (vfResistence - TEMP_OFFSET) / TEMP_FACTOR;
     char vfBuffer[100] = {0};
     sprintf(vfBuffer, "ADC value VF: %d Ohm %.1f °C\n", vfResistence, vfTemp);
-    Log.notice(vfBuffer);}
+    Log.notice(vfBuffer);
+}
