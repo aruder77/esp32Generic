@@ -154,6 +154,8 @@ void Controller::setup() {
     modules.getAt(i)->setup();
   }
   networkControl->setup();
+
+  heatingController->setup();
 }
 
 void Controller::loop()
@@ -171,6 +173,9 @@ void Controller::loop()
     }
 
     networkControl->loop();
+
+    heatingController->loop();
+    
     break;
   case Fota_e:
     ledController->blinkSlow();

@@ -80,6 +80,7 @@ class Controller : public NetworkModule, public PrefsClient {
         NetworkControl* networkControl;
         Prefs* prefs;
         LedController* ledController;
+        HeatingController* heatingController;
 
         Modules modules;
 
