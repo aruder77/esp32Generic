@@ -24,8 +24,8 @@ void Module::everySecond() {
 void Module::messageReceived(const char *topic, const char *payload) {
 }
 
-const char * Module::getTelemetryData() {
-    return "";
+void Module::getTelemetryData(char *targetBuffer) {
+    
 }
 
 void Module::configUpdate(const char *id, const char *value) {

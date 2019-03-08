@@ -16,6 +16,85 @@ void startDl(void) {
 void endDl(void) {
 }
 
+void Modules::addModule(Module *module) {
+  modules[length++] = module;
+}
+
+uint8_t Modules::count() {
+  return length;
+}
+
+Module *Modules::getAt(uint8_t index) {
+  return modules[index];
+}
+
+void Modules::setup() {
+  for (int i = 0; i < length; i++) {
+    modules[i]->setup();
+  }  
+};
+
+void Modules::loop() {
+  for (int i = 0; i < length; i++) {
+    modules[i]->loop();
+  }  
+};
+
+void Modules::everyMillisecond() {
+  for (int i = 0; i < length; i++) {
+    modules[i]->everyMillisecond();
+  }  
+};
+
+void Modules::every10Milliseconds() {
+  for (int i = 0; i < length; i++) {
+    modules[i]->every10Milliseconds();
+  }  
+};
+
+void Modules::every50Milliseconds() {
+  for (int i = 0; i < length; i++) {
+    modules[i]->every50Milliseconds();
+  }  
+};
+
+void Modules::every100Milliseconds() {
+  for (int i = 0; i < length; i++) {
+    modules[i]->every100Milliseconds();
+  }  
+};
+
+void Modules::everySecond() {
+  for (int i = 0; i < length; i++) {
+    modules[i]->everySecond();
+  }  
+};
+
+void Modules::getTelemetryData(char *targetBuffer) {
+  char telemetryBuffer[1024] = {0};
+  strcpy(telemetryBuffer, "{");
+  int currentLength = 1;
+  for (int i = 0; i < length; i++) {
+    char moduleBuffer[100];
+    modules[i]->getTelemetryData(moduleBuffer);
+    strcpy(telemetryBuffer + currentLength, moduleBuffer);
+    currentLength += strlen(moduleBuffer);
+
+    const char *moduleName = modules[i]->getName();
+    strcpy(telemetryBuffer + currentLength, moduleName);
+    currentLength += strlen(moduleName);
+
+    strcpy(telemetryBuffer + currentLength, ": ");
+    currentLength += 2;
+
+    if (i != length-1) {
+      strcpy(telemetryBuffer + currentLength, ",");
+      currentLength += 1;
+    }
+  }
+  strcpy(telemetryBuffer + currentLength, "}");
+  strcpy(targetBuffer, telemetryBuffer);
+};
 
 void Controller::commandReceived(const char *command, const char *payload) {
   if (strcmp(OTA_TOPIC, command) == 0) {
@@ -59,6 +138,8 @@ Controller::Controller()
 
   // create all modules 
   networkControl = NetworkControl::getInstance();
+  modules.addModule(networkControl);
+  modules.addModule(new HeatingController());
 
   setup();
 }
@@ -69,6 +150,9 @@ void Controller::setup() {
 
   networkControl->subscribeToCommand(OTA_TOPIC, this);
 
+  for (int i = 0; i < modules.count(); i++) {
+    modules.getAt(i)->setup();
+  }
   networkControl->setup();
 }
 

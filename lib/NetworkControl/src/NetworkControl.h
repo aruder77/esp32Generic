@@ -28,6 +28,7 @@ public:
     static NetworkControl* getInstance();
     static bool exists();
 
+	const char *getName();
 	void setup();
 	void loop();
 	void messageReceived(const char *topic, const char *message);

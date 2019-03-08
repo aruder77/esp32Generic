@@ -10,6 +10,7 @@ class HeatingController : public Module, public PrefsClient {
     public:
         HeatingController();
 
+        const char *getName();
         void setup();
         void everySecond();
 
@@ -18,6 +19,6 @@ class HeatingController : public Module, public PrefsClient {
     private:
         Prefs *prefs = Prefs::getInstance();
         int atFuehlerPin = 34;
-}
+};
 
 #endif

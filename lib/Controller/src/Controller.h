@@ -8,6 +8,7 @@
 #include <Prefs.h>
 #include <LedController.h>
 #include <NetworkModule.h>
+#include <HeatingController.h>
 
 /* topics */
 #define OTA_TOPIC "ota"
@@ -18,6 +19,26 @@ typedef enum
   Fota_e
 } SysState;
 
+
+class Modules {
+    private:
+        Module *modules[10];
+        uint8_t length = 0;
+    
+    public:
+        void addModule(Module *module);
+        Module *getAt(uint8_t index);
+        uint8_t count();
+
+        virtual void setup();
+        virtual void loop();
+        virtual void everyMillisecond();
+        virtual void every10Milliseconds();
+        virtual void every50Milliseconds();
+        virtual void every100Milliseconds();
+        virtual void everySecond();
+        virtual void getTelemetryData(char *targetBuffer);        
+};
 
 class Controller : public NetworkModule, public PrefsClient {
     public:
@@ -59,6 +80,8 @@ class Controller : public NetworkModule, public PrefsClient {
         NetworkControl* networkControl;
         Prefs* prefs;
         LedController* ledController;
+
+        Modules modules;
 
         char url[100];
         char md5_check[50];
