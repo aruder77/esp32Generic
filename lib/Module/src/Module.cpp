@@ -6,9 +6,6 @@ void Module::setup() {
 void Module::loop() {
 }
 
-void Module::everyMillisecond() {
-}
-
 void Module::every10Milliseconds() {
 }
 

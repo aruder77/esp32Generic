@@ -40,12 +40,6 @@ void Modules::loop() {
   }  
 };
 
-void Modules::everyMillisecond() {
-  for (int i = 0; i < length; i++) {
-    modules[i]->everyMillisecond();
-  }  
-};
-
 void Modules::every10Milliseconds() {
   for (int i = 0; i < length; i++) {
     modules[i]->every10Milliseconds();
@@ -75,17 +69,17 @@ void Modules::getTelemetryData(char *targetBuffer) {
   strcpy(telemetryBuffer, "{");
   int currentLength = 1;
   for (int i = 0; i < length; i++) {
-    char moduleBuffer[100];
-    modules[i]->getTelemetryData(moduleBuffer);
-    strcpy(telemetryBuffer + currentLength, moduleBuffer);
-    currentLength += strlen(moduleBuffer);
-
     const char *moduleName = modules[i]->getName();
     strcpy(telemetryBuffer + currentLength, moduleName);
     currentLength += strlen(moduleName);
 
-    strcpy(telemetryBuffer + currentLength, ": ");
-    currentLength += 2;
+    strcpy(telemetryBuffer + currentLength, ":");
+    currentLength += 1;
+
+    char moduleBuffer[100] = {0};
+    modules[i]->getTelemetryData(moduleBuffer);
+    strcpy(telemetryBuffer + currentLength, moduleBuffer);
+    currentLength += strlen(moduleBuffer);
 
     if (i != length-1) {
       strcpy(telemetryBuffer + currentLength, ",");
@@ -116,10 +110,6 @@ void Controller::commandReceived(const char *command, const char *payload) {
     Log.notice("started fota md5: %s\n", md5_check);
     state = Fota_e;
   }
-}
-
-const char *Controller::getTelemetryData() {
-	return "";
 }
 
 
@@ -153,13 +143,15 @@ void Controller::setup() {
   for (int i = 0; i < modules.count(); i++) {
     modules.getAt(i)->setup();
   }
-  networkControl->setup();
+}
 
-  heatingController->setup();
+void Controller::getTelemetryData(char *targetBuffer) {
 }
 
 void Controller::loop()
 {
+  unsigned long currentMillis = millis();
+
   switch (state)
   {
   case Runnning_e:
@@ -172,11 +164,38 @@ void Controller::loop()
       Log.notice("connected...yeey :)\n");
     }
 
-    networkControl->loop();
+    modules.loop();
 
-    heatingController->loop();
-    
+    if (currentMillis > timer) {
+        timer = currentMillis + LOOP_INTERVAL_IN_MS;
+        modules.every10Milliseconds();
+
+        // every 50 milliseconds
+        if (loopCounter % 5 == 0) {
+          modules.every50Milliseconds();
+        } 
+
+        // every 100 milliseconds
+        if (loopCounter % 10 == 0) {
+          modules.every100Milliseconds();
+        }
+
+        // every second
+        if (loopCounter % 100 == 0) {
+          modules.everySecond();
+        }
+
+        if (loopCounter % 1000 == 0) {
+          char telemetryData[1024];
+          modules.getTelemetryData(telemetryData);
+          networkControl->sendTelemetry(telemetryData);
+        }
+
+        loopCounter++;
+    }    
+
     break;
+
   case Fota_e:
     ledController->blinkSlow();
 

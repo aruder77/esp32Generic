@@ -55,6 +55,8 @@ NetworkControl::NetworkControl() {
 	prefs->get("mqtt-server", mqtt_server);
 	Log.notice("loaded mqtt-server from eeprom: %s\n", mqtt_server);
 	mqttClient->setServer(mqtt_server, 1883);
+
+	prefs->get("clientId", clientId);
 }
 
 NetworkControl::~NetworkControl()
@@ -62,7 +64,7 @@ NetworkControl::~NetworkControl()
 }
 
 const char *NetworkControl::getName() {
-	return "NetworkControl";
+	return "network";
 }
 
 void NetworkControl::setup() {
@@ -131,8 +133,6 @@ void NetworkControl::reconnect()
 	{
 		Log.notice("Attempting MQTT connection...\n");
 		// Attempt to connect
-		char clientId[50] = {0};
-		prefs->get("clientId", clientId);
 		if (mqttClient->connect(clientId))	
 		{
 			Log.notice("connected\n");
@@ -169,7 +169,15 @@ void NetworkControl::subscribeToCommand(const char *command, NetworkModule *netw
 
 void NetworkControl::send(const char *topic, const char *message)
 {
+	Log.notice("MQTT send topic %s: %s\n", topic, message);
 	mqttClient->publish(topic, message);
+}
+
+void NetworkControl::sendTelemetry(const char *data) {
+	char teleTopic[100] = {0};
+	sprintf(teleTopic, "tele/%s/status", clientId);
+	Log.notice("sending telemetry topic %s with data %s\n", teleTopic, data);
+	send(teleTopic, data);
 }
 
 bool NetworkControl::exists()
@@ -201,9 +209,7 @@ void NetworkControl::enterConfigPortal()
 	Log.notice("entering config portal mode...\n");
 	ledController->blink();
 
-	char clientId[50];
 	char wpaKey[100];
-	prefs->get("clientId", clientId);
 	prefs->get("wpaKey", wpaKey);
 	if (!wifiManager.startConfigPortal(clientId, wpaKey))
 	{
@@ -231,10 +237,9 @@ void NetworkControl::enterConfigPortal()
 void NetworkControl::configUpdate(const char *id, const char *value) {
 	Log.notice("NetworkControl: config update received: %s, %s\n", id, value);
 	if (strcmp(id, "clientId") == 0) {
-		char clientId[50];
-		prefs->get("clientId", clientId);
 		unsubscribeTopic(clientId);
-		subscribeTopic(value);
+		strcpy(clientId, value);
+		subscribeTopic(clientId);
 	}
 }
 

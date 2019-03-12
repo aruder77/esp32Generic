@@ -9,7 +9,6 @@ class Module {
         virtual const char *getName();
         virtual void setup();
         virtual void loop();
-        virtual void everyMillisecond();
         virtual void every10Milliseconds();
         virtual void every50Milliseconds();
         virtual void every100Milliseconds();

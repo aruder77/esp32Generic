@@ -32,7 +32,6 @@ class Modules {
 
         virtual void setup();
         virtual void loop();
-        virtual void everyMillisecond();
         virtual void every10Milliseconds();
         virtual void every50Milliseconds();
         virtual void every100Milliseconds();
@@ -49,12 +48,13 @@ class Controller : public NetworkModule, public PrefsClient {
         void loop();
         
         virtual void commandReceived(const char *command, const char *payload);
-        virtual const char *getTelemetryData();  
+        virtual void getTelemetryData(char *targetBuffer);  
         
         virtual void configUpdate(const char *id, const char *value);          
 
     private:
         static const int BAUD_RATE = 115200;
+        static const int LOOP_INTERVAL_IN_MS = 10;
         const char *root_ca = \
             "-----BEGIN CERTIFICATE-----\n"\
             "MIIDSjCCAjKgAwIBAgIQRK+wgNajJ7qJMDmGLvhAazANBgkqhkiG9w0BAQUFADA/\n"\
@@ -89,6 +89,9 @@ class Controller : public NetworkModule, public PrefsClient {
         SysState state = Runnning_e;
 
         uint8_t enterConfigPortalPin = A4;
+
+        long timer = 0;
+        int loopCounter = 0;
 };
 
 #endif

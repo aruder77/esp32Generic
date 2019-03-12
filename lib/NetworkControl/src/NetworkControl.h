@@ -33,6 +33,7 @@ public:
 	void loop();
 	void messageReceived(const char *topic, const char *message);
 	void send(const char *topic, const char *message);
+	void sendTelemetry(const char *data);
 	bool isConnected();
 
 	void subscribeToCommand(const char *command, NetworkModule *networkModule);
@@ -52,6 +53,7 @@ private:
 
 	int loop_counter = 0;
 	char mqtt_server[100] = {0};
+	char clientId[20] = {0};
 
 	WiFiManagerParameter **params;
 	int wifiParamCount;
