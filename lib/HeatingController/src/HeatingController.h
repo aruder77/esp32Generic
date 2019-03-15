@@ -6,6 +6,7 @@
 #include <ArduinoLog.h>
 #include <driver/adc.h>
 #include <esp_adc_cal.h>
+#include <PID_v1.h>
 
 class HeatingController : public Module, public PrefsClient {
 
@@ -15,6 +16,7 @@ class HeatingController : public Module, public PrefsClient {
         const char *getName();
         void setup();
         void everySecond();
+        void every10Milliseconds();        
 
         void getTelemetryData(char *targetBuffer);
 
@@ -26,11 +28,19 @@ class HeatingController : public Module, public PrefsClient {
         static constexpr float TEMP_OFFSET = 821;
         static const int REF_RESISTOR = 1515;
         static const int REF_VOLTAGE = 3309;
+        static const int VALVE_ONE_PERCENT_OPEN_CYCLES = 45;
 
         Prefs *prefs = Prefs::getInstance();
-        int atFuehlerPin = 34;
+        uint8_t atFuehlerPin = 34;
+        uint8_t vFuehlerPin = 33;
+        uint8_t rueFuehlerPin = 35;
+        uint8_t openPin = 18;
+        uint8_t closePin = 19;
+        uint8_t pumpPin = 20;
 
         esp_adc_cal_characteristics_t *adc_chars;
+
+        PID *pidController = 0;
 
         unsigned long timer = 0;
         int loopCounter = 0;
@@ -43,7 +53,18 @@ class HeatingController : public Module, public PrefsClient {
         float ruefTemp = 0.0f;
         int vfAdc = 0;
         int vfResistence = 0;
-        float vfTemp = 0.0f;
+        double vfTemp = 0.0f;
+
+        double kP = 1;
+        double kI = 0.05;
+        double kD = 0.25;
+
+        double targetTemp = 40.0;
+        
+        double valveTarget = 0;
+        double valveCurrent = 0;
+
+        int motorAdjustCounter = 0;
 
         uint32_t readVoltage(adc1_channel_t channel);
         uint32_t calculateResistence(uint32_t voltage);

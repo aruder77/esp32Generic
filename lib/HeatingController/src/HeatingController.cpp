@@ -1,7 +1,13 @@
 #include "HeatingController.h"
+#include <math.h>
 
 HeatingController::HeatingController() {
     prefs->registerConfigParam("atFuehlerPin", "Außentemperatur-Fühler-Pin", "34", 3, this);
+    prefs->registerConfigParam("vFuehlerPin", "Vorlauf-Temperatur-Fühler-Pin", "33", 3, this);
+    prefs->registerConfigParam("rueFuehlerPin", "Rücklauf-Temperatur-Fühler-Pin", "35", 3, this);
+    prefs->registerConfigParam("openPin", "Ventil-Öffnen-Pin", "18", 3, this);
+    prefs->registerConfigParam("closePin", "Ventil-Schliessen-Pin", "19", 3, this);
+    prefs->registerConfigParam("pumpPin", "Heizungspumpe-Pin", "20", 3, this);
 }
 
 const char *HeatingController::getName() {
@@ -10,6 +16,12 @@ const char *HeatingController::getName() {
 
 void HeatingController::setup() {
     atFuehlerPin = prefs->getInt("atFuehlerPin");
+    vFuehlerPin = prefs->getInt("vFuehlerPin");
+    rueFuehlerPin = prefs->getInt("rueFuehlerPin");
+    openPin = prefs->getInt("openPin");
+    closePin = prefs->getInt("closePin");
+    pumpPin = prefs->getInt("pumpPin");
+
     adc1_config_width(ADC_WIDTH_12Bit);
     adc1_config_channel_atten(ADC1_CHANNEL_6, ADC_ATTEN_11db);
     adc1_config_channel_atten(ADC1_CHANNEL_5, ADC_ATTEN_11db);
@@ -29,6 +41,8 @@ void HeatingController::setup() {
     } else {
         Log.notice("Default\n");
     }    
+
+    pidController = new PID(&vfTemp, &valveTarget, &targetTemp, kP, kI, kD, DIRECT);
 }
 
 void HeatingController::configUpdate(const char *id, const char *value) {
@@ -48,7 +62,7 @@ uint32_t HeatingController::calculateTemperature(uint32_t resistence) {
 }
 
 void HeatingController::everySecond() {
-    if (loopCounter == 10) {
+    if (loopCounter == 60) {
         uint32_t afVoltage = readVoltage(ADC1_CHANNEL_6);
         afResistence = calculateResistence(afVoltage);
         afTemp = calculateTemperature(afResistence);
@@ -69,9 +83,45 @@ void HeatingController::everySecond() {
         char vfBuffer[100] = {0};
         sprintf(vfBuffer, "ADC value VF: %d Resistence: %d Ohm Temperature: %.1f °C\n", vfAdc, vfResistence, vfTemp);
         Log.notice(vfBuffer);
+
+        pidController->Compute();
+
+        Log.notice("Ventil Ziel: %d\n", valveTarget);
+        // if completely open or closed, make sure it is really completely open/closed.
+        if (valveTarget == 100) {
+            valveTarget = 103;
+        } else if (valveTarget == 0) {
+            valveTarget = -3;
+        }
+        motorAdjustCounter = max(-103.0, min(103.0, (valveTarget - valveCurrent))) * VALVE_ONE_PERCENT_OPEN_CYCLES;
+        Log.notice("MotorAdjustCounter: %d\n", motorAdjustCounter);
+
         loopCounter = 0;
     }
     loopCounter++;
+}
+
+void HeatingController::every10Milliseconds() {
+    // adjust 2-point regulation
+    if (motorAdjustCounter > 0) {
+        digitalWrite(openPin, HIGH);
+        digitalWrite(closePin, LOW);
+        if (valveCurrent < 100) {
+            valveCurrent++;
+        }
+        motorAdjustCounter--;    
+    } else if (motorAdjustCounter < 0) {
+        digitalWrite(openPin, LOW);
+        digitalWrite(closePin, HIGH);
+        if (valveCurrent > 0) {
+            valveCurrent--;
+        }
+        motorAdjustCounter++;
+    } else {
+        // keep current valve position
+        digitalWrite(openPin, LOW);
+        digitalWrite(closePin, LOW);
+    }
 }
 
 void HeatingController::getTelemetryData(char *targetBuffer) {
