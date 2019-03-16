@@ -15,7 +15,7 @@ public:
         strcpy(receivedPayload, payload);
     }
 
-    virtual const char *getTelemetryData() {
+    virtual void getTelemetryData(char *targetBuffer) {
     }
 
     const char *getReceivedCommand() {
@@ -89,7 +89,7 @@ void setup() {
     UNITY_BEGIN();
     RUN_TEST(test_LedController_onOff);
     RUN_TEST(test_LedController_blink);
-    RUN_TEST(test_NetworkControl_commands);
+    RUN_TEST(test_MessageDispatcher_commands);
     UNITY_END();
 }
 

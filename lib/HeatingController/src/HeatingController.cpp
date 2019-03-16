@@ -21,7 +21,7 @@ void HeatingController::setup() {
     openPin = prefs->getInt("openPin");
     closePin = prefs->getInt("closePin");
     pumpPin = prefs->getInt("pumpPin");
-
+ 
     adc1_config_width(ADC_WIDTH_12Bit);
     adc1_config_channel_atten(ADC1_CHANNEL_6, ADC_ATTEN_11db);
     adc1_config_channel_atten(ADC1_CHANNEL_5, ADC_ATTEN_11db);
