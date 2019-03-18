@@ -130,6 +130,7 @@ Controller::Controller()
   networkControl = NetworkControl::getInstance();
   modules.addModule(networkControl);
   modules.addModule(new HeatingController());
+  modules.addModule(new DisplayControl());
 
   setup();
 }

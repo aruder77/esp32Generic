@@ -9,6 +9,7 @@
 #include <LedController.h>
 #include <NetworkModule.h>
 #include <HeatingController.h>
+#include <DisplayControl.h>
 
 /* topics */
 #define OTA_TOPIC "ota"
