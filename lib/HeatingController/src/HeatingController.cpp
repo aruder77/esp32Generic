@@ -22,6 +22,7 @@ void HeatingController::configUpdate(const char *id, const char *value) {
 
 
 void HeatingController::everySecond() {
+    // every minute
     if (loopCounter == 60) {
         temperatureReader->readTemperatures();
         double outsideTemperature = temperatureReader->getOutsideTemperature();
