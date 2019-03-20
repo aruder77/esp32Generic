@@ -8,6 +8,7 @@
 #include <TargetFlowTemperatureCalculator.h>
 #include <ValveController.h>
 #include <TemperatureReader.h>
+#include <HeatPumpController.h>
 
 class HeatingController : public Module, public PrefsClient {
 
@@ -31,8 +32,7 @@ class HeatingController : public Module, public PrefsClient {
         FlowTemperatureRegulator *flowTemperatureRegulator;
         TargetFlowTemperatureCalculator *targetFlowTemperatureCalculator;
         ValveController *valveController;
-
-        uint8_t pumpPin = 20;
+        HeatPumpController *heatPumpController;
 
         unsigned long timer = 0;
         int loopCounter = 0;

@@ -1,20 +1,21 @@
 #include "HeatingController.h"
 
 HeatingController::HeatingController() {
-    prefs->registerConfigParam("pumpPin", "Heizungspumpe-Pin", "20", 3, this);
 }
 
 const char *HeatingController::getName() {
     return "heating";
 }
 
-void HeatingController::setup() {
-    pumpPin = prefs->getInt("pumpPin");
- 
+void HeatingController::setup() { 
     temperatureReader = new TemperatureReader();
     flowTemperatureRegulator = new FlowTemperatureRegulator();
     targetFlowTemperatureCalculator = new TargetFlowTemperatureCalculator();
     valveController = new ValveController();
+    heatPumpController = new HeatPumpController();
+
+    // always on for now
+    heatPumpController->on();
 }
 
 void HeatingController::configUpdate(const char *id, const char *value) {
