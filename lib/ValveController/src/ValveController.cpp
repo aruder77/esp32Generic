@@ -9,28 +9,31 @@ ValveController::ValveController() {
 void ValveController::setup() {
     openPin = prefs->getInt("openPin");
     closePin = prefs->getInt("closePin");    
+
+    pinMode(openPin, OUTPUT);
+    pinMode(closePin, OUTPUT);
 }
 
 void ValveController::every10Milliseconds() {
     // adjust 2-point regulation
     if (motorAdjustCounter > 0) {
-        digitalWrite(openPin, HIGH);
-        digitalWrite(closePin, LOW);
+        digitalWrite(openPin, LOW);
+        digitalWrite(closePin, HIGH);
         if (valveCurrent < 100) {
             valveCurrent++;
         }
         motorAdjustCounter--;    
     } else if (motorAdjustCounter < 0) {
-        digitalWrite(openPin, LOW);
-        digitalWrite(closePin, HIGH);
+        digitalWrite(openPin, HIGH);
+        digitalWrite(closePin, LOW);
         if (valveCurrent > 0) {
             valveCurrent--;
         }
         motorAdjustCounter++;
     } else {
         // keep current valve position
-        digitalWrite(openPin, LOW);
-        digitalWrite(closePin, LOW);
+        digitalWrite(openPin, HIGH);
+        digitalWrite(closePin, HIGH);
     }
 }
 
