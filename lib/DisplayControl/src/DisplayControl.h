@@ -3,8 +3,6 @@
 
 #include <SPI.h>
 #include <Module.h>
-#include <Adafruit_GFX.h>
-#include <WROVER_KIT_LCD.h>
 
 class DisplayControl : public Module {
 
@@ -15,7 +13,6 @@ class DisplayControl : public Module {
         void setup();    
 
     private:
-        WROVER_KIT_LCD *tft;
 };
 
 #endif

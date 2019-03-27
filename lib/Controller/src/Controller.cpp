@@ -168,7 +168,7 @@ void Controller::loop()
     modules.loop();
 
     if (currentMillis > timer) {
-        timer = currentMillis + LOOP_INTERVAL_IN_MS;
+        timer = timer + LOOP_INTERVAL_IN_MS;
         modules.every10Milliseconds();
 
         // every 50 milliseconds
