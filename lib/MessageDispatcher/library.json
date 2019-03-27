@@ -1,0 +1,5 @@
+{
+  "name": "MessageDispatcher",
+  "frameworks": "arduino",
+  "platforms": "espressif32"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "ValveController",
+  "frameworks": "arduino",
+  "platforms": "espressif32"
+}
