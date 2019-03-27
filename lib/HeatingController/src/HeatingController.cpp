@@ -32,9 +32,9 @@ void HeatingController::everySecond() {
         double flowTemperature = temperatureReader->getFlowTemperature();
 
         double targetFlowTemperature = targetFlowTemperatureCalculator->calculateTargetFlowTemperature(outsideTemperature);
-        int valveTarget = flowTemperatureRegulator->calculateValveTarget(20.0, targetFlowTemperature);
+        int valveTarget = flowTemperatureRegulator->calculateValveTarget(flowTemperature, targetFlowTemperature);
         char printStr[100];
-        snprintf(printStr, 100, "Ventil aktuell: %.1f, Ziel: %.1f\n", valveCurrent, valveTarget);
+        sprintf(printStr, "Ventil aktuell: %.1f, Ziel: %.1f\n", valveCurrent, valveTarget);
         Log.notice(printStr);
         valveController->setTargetValvePosition(valveTarget);
         valveCurrent = valveTarget;
@@ -54,6 +54,6 @@ void HeatingController::getTelemetryData(char *targetBuffer) {
     double returnTemperature = temperatureReader->getReturnTemperature();
 
     char telemetryData[100] = {0};
-    sprintf(telemetryData, "{outsid:%.1f,return:%.1f,flow:%.1f}", outsideTemperature, returnTemperature, flowTemperature);
+    sprintf(telemetryData, "{outside:%.1f,return:%.1f,flow:%.1f}", outsideTemperature, returnTemperature, flowTemperature);
     strcpy(targetBuffer, telemetryData);
 }
