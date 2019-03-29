@@ -39,23 +39,23 @@ void TemperatureReader::setup() {
 void TemperatureReader::readTemperatures() {
     uint32_t afVoltage = readVoltage(ADC1_CHANNEL_6);
     afResistence = calculateResistence(afVoltage);
-    afTemp = calculateTemperature(afResistence);
+    outsideTemperature = calculateTemperature(afResistence);
     char afBuffer[100] = {0};
-    sprintf(afBuffer, "ADC value AF: %d, Voltage: %d mV, Resistence: %d Ohm, Temperature: %.1f °C\n", afAdc, afVoltage, afResistence, afTemp);
+    sprintf(afBuffer, "ADC value AF: %d, Voltage: %d mV, Resistence: %d Ohm, Temperature: %.1f °C\n", afAdc, afVoltage, afResistence, outsideTemperature);
     Log.notice(afBuffer);
 
     uint32_t ruefVoltage = readVoltage(ADC1_CHANNEL_5);
     ruefResistence = calculateResistence(ruefVoltage);
-    ruefTemp = calculateTemperature(ruefResistence);
+    returnTemperature = calculateTemperature(ruefResistence);
     char ruefBuffer[100] = {0};
-    sprintf(ruefBuffer, "ADC value RüF: %d Resistence: %d Ohm Temperature: %.1f °C\n", ruefAdc, ruefResistence, ruefTemp);
+    sprintf(ruefBuffer, "ADC value RüF: %d Resistence: %d Ohm Temperature: %.1f °C\n", ruefAdc, ruefResistence, returnTemperature);
     Log.notice(ruefBuffer);
 
     uint32_t vfVoltage = readVoltage(ADC1_CHANNEL_7);
     vfResistence = calculateResistence(vfVoltage);
-    vfTemp = calculateTemperature(vfResistence);
+    flowTemperature = calculateTemperature(vfResistence);
     char vfBuffer[100] = {0};
-    sprintf(vfBuffer, "ADC value VF: %d Resistence: %d Ohm Temperature: %.1f °C\n", vfAdc, vfResistence, vfTemp);
+    sprintf(vfBuffer, "ADC value VF: %d Resistence: %d Ohm Temperature: %.1f °C\n", vfAdc, vfResistence, flowTemperature);
     Log.notice(vfBuffer);    
 }
 
