@@ -26,7 +26,7 @@ class ValveController : public PrefsClient {
 
         int motorAdjustCounter = 0;
 
-        int valveCurrent = 0;
+        double valveCurrent = 0.0;
         int valveTarget = 0;
 };
 

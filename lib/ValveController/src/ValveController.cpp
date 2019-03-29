@@ -19,14 +19,14 @@ void ValveController::every10Milliseconds() {
     if (motorAdjustCounter > 0) {
         digitalWrite(openPin, LOW);
         digitalWrite(closePin, HIGH);
-        if (valveCurrent < 100) {
+        if ((motorAdjustCounter % VALVE_ONE_PERCENT_OPEN_CYCLES) == 0 && valveCurrent < 100) {
             valveCurrent++;
         }
         motorAdjustCounter--;    
     } else if (motorAdjustCounter < 0) {
         digitalWrite(openPin, HIGH);
         digitalWrite(closePin, LOW);
-        if (valveCurrent > 0) {
+        if ((motorAdjustCounter % VALVE_ONE_PERCENT_OPEN_CYCLES) == 0 && valveCurrent > 0) {
             valveCurrent--;
         }
         motorAdjustCounter++;

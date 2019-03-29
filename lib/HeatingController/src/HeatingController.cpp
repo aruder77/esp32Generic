@@ -23,16 +23,15 @@ void HeatingController::configUpdate(const char *id, const char *value) {
 
 
 void HeatingController::everySecond() {
-    Log.notice("ping: %d\n", loopCounter);
+    temperatureReader->readTemperatures();
 
     // every minute
     if (loopCounter == 60) {
-        temperatureReader->readTemperatures();
         double outsideTemperature = temperatureReader->getOutsideTemperature();
         double flowTemperature = temperatureReader->getFlowTemperature();
 
         double targetFlowTemperature = targetFlowTemperatureCalculator->calculateTargetFlowTemperature(outsideTemperature);
-        int valveTarget = flowTemperatureRegulator->calculateValveTarget(flowTemperature, targetFlowTemperature);
+        double valveTarget = flowTemperatureRegulator->calculateValveTarget(flowTemperature, targetFlowTemperature);
         char printStr[100];
         sprintf(printStr, "Ventil aktuell: %.1f, Ziel: %.1f\n", valveCurrent, valveTarget);
         Log.notice(printStr);
