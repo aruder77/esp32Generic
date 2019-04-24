@@ -5,6 +5,7 @@
 #include <driver/adc.h>
 #include <esp_adc_cal.h>
 #include <ArduinoLog.h>
+#include <Filters.h>
 
 class TemperatureReader : public PrefsClient {
 
@@ -20,15 +21,24 @@ class TemperatureReader : public PrefsClient {
 
     private:
         static constexpr float RESISTANCE_FACTOR = 1.429f;
-        static constexpr float TEMP_FACTOR = 7.5f;
-        static constexpr float TEMP_OFFSET = 821;
-        static const int REF_RESISTOR = 1515;
-        static const int REF_VOLTAGE = 3309;
+        static constexpr float OUTSIDE_TEMP_FACTOR = 3.96;
+        static constexpr float OUTSIDE_TEMP_OFFSET = 1002;
+        static constexpr float FLOW_TEMP_FACTOR = 3.78;
+        static constexpr float FLOW_TEMP_OFFSET = 1004;
+        static constexpr float RETURN_TEMP_FACTOR = 5.0;
+        static constexpr float RETURN_TEMP_OFFSET = 929;
+        static const int REF_RESISTOR = 3883;
+        static const int REF_VOLTAGE = 3309;        
+        static const int JITTER_TOLERANCE = 1;
+        static constexpr float LOW_PASS_FREQUENCY = 0.1;
 
         Prefs *prefs;
+        FilterOnePole *afFilter;
+        FilterOnePole *ruefFilter;
+        FilterOnePole *vfFilter;
 
         uint8_t atFuehlerPin = 34;
-        uint8_t vFuehlerPin = 33;
+        uint8_t vFuehlerPin = 32;
         uint8_t rueFuehlerPin = 35;
 
         esp_adc_cal_characteristics_t *adc_chars;
@@ -43,13 +53,17 @@ class TemperatureReader : public PrefsClient {
         int vfResistence = 0;
         double vfTemp = 0.0f;
 
-        double outsideTemperature = 0.0;
-        double flowTemperature = 0.0;
-        double returnTemperature = 0.0;
+        int outsideTemperatureCount = 0;
+        double outsideTemperature[10] = {0.0};
+        int flowTemperatureCount = 0;
+        double flowTemperature[10] = {0.0};
+        int returnTemperatureCount = 0;
+        double returnTemperature[10] = {0.0};
 
         uint32_t readVoltage(adc1_channel_t channel);
         uint32_t calculateResistence(uint32_t voltage);
-        uint32_t calculateTemperature(uint32_t resistence);        
+        double calculateTemperature(uint32_t resistence, double offset, double factor);  
+        double calcOversampledTemperature(double samplingData[]);      
 };
 
 #endif

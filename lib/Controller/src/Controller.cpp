@@ -158,12 +158,12 @@ void Controller::loop()
   case Runnning_e:
 
       // is configuration portal requested?
-    if ( digitalRead(enterConfigPortalPin) == LOW) {
+    /*if ( digitalRead(enterConfigPortalPin) == LOW) {
       networkControl->enterConfigPortal();
 
       //if you get here you have connected to the WiFi
       Log.notice("connected...yeey :)\n");
-    }
+    }*/
 
     modules.loop();
 

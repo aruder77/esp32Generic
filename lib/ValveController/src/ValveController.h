@@ -21,8 +21,8 @@ class ValveController : public PrefsClient {
 
         Prefs *prefs = Prefs::getInstance();
 
-        uint8_t openPin = 18;
-        uint8_t closePin = 19;
+        uint8_t openPin = 19;
+        uint8_t closePin = 18;
 
         int motorAdjustCounter = 0;
 

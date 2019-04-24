@@ -23,8 +23,6 @@ void HeatingController::configUpdate(const char *id, const char *value) {
 
 
 void HeatingController::everySecond() {
-    temperatureReader->readTemperatures();
-
     // every minute
     if (loopCounter == 60) {
         double outsideTemperature = temperatureReader->getOutsideTemperature();
@@ -45,6 +43,7 @@ void HeatingController::everySecond() {
 
 void HeatingController::every10Milliseconds() {
     valveController->every10Milliseconds();
+    temperatureReader->readTemperatures();
 }
 
 void HeatingController::getTelemetryData(char *targetBuffer) {

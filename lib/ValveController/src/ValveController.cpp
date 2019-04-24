@@ -1,8 +1,8 @@
 #include "ValveController.h"
 
 ValveController::ValveController() {
-    prefs->registerConfigParam("openPin", "Ventil-Öffnen-Pin", "18", 3, this);
-    prefs->registerConfigParam("closePin", "Ventil-Schliessen-Pin", "19", 3, this);    
+    prefs->registerConfigParam("openPin", "Ventil-Öffnen-Pin", "19", 3, this);
+    prefs->registerConfigParam("closePin", "Ventil-Schliessen-Pin", "18", 3, this);    
     setup();
 }
 
@@ -17,23 +17,23 @@ void ValveController::setup() {
 void ValveController::every10Milliseconds() {
     // adjust 2-point regulation
     if (motorAdjustCounter > 0) {
-        digitalWrite(openPin, LOW);
-        digitalWrite(closePin, HIGH);
+        digitalWrite(openPin, HIGH);
+        digitalWrite(closePin, LOW);
         if ((motorAdjustCounter % VALVE_ONE_PERCENT_OPEN_CYCLES) == 0 && valveCurrent < 100) {
             valveCurrent++;
         }
         motorAdjustCounter--;    
     } else if (motorAdjustCounter < 0) {
-        digitalWrite(openPin, HIGH);
-        digitalWrite(closePin, LOW);
+        digitalWrite(openPin, LOW);
+        digitalWrite(closePin, HIGH);
         if ((motorAdjustCounter % VALVE_ONE_PERCENT_OPEN_CYCLES) == 0 && valveCurrent > 0) {
             valveCurrent--;
         }
         motorAdjustCounter++;
     } else {
         // keep current valve position
-        digitalWrite(openPin, HIGH);
-        digitalWrite(closePin, HIGH);
+        digitalWrite(openPin, LOW);
+        digitalWrite(closePin, LOW);
     }
 }
 
