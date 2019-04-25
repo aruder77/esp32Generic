@@ -30,7 +30,7 @@ class TemperatureReader : public PrefsClient {
         static const int REF_RESISTOR = 3883;
         static const int REF_VOLTAGE = 3309;        
         static const int JITTER_TOLERANCE = 1;
-        static constexpr float LOW_PASS_FREQUENCY = 0.1;
+        static constexpr float LOW_PASS_FREQUENCY = 1.0;
 
         Prefs *prefs;
         FilterOnePole *afFilter;
@@ -38,8 +38,8 @@ class TemperatureReader : public PrefsClient {
         FilterOnePole *vfFilter;
 
         uint8_t atFuehlerPin = 34;
-        uint8_t vFuehlerPin = 32;
         uint8_t rueFuehlerPin = 35;
+        uint8_t vFuehlerPin = 32;
 
         esp_adc_cal_characteristics_t *adc_chars;
 

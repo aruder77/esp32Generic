@@ -3,8 +3,8 @@
 TemperatureReader::TemperatureReader() {
     prefs = Prefs::getInstance();
     prefs->registerConfigParam("atFuehlerPin", "Außentemperatur-Fühler-Pin", "34", 3, this);
-    prefs->registerConfigParam("vFuehlerPin", "Vorlauf-Temperatur-Fühler-Pin", "32", 3, this);
     prefs->registerConfigParam("rueFuehlerPin", "Rücklauf-Temperatur-Fühler-Pin", "35", 3, this);
+    prefs->registerConfigParam("vFuehlerPin", "Vorlauf-Temperatur-Fühler-Pin", "32", 3, this);
 
     setup();
 }
@@ -44,10 +44,10 @@ void TemperatureReader::readTemperatures() {
     uint32_t afVoltage = readVoltage(ADC1_CHANNEL_6);
     afFilter->input(afVoltage);
 
-    uint32_t ruefVoltage = readVoltage(ADC1_CHANNEL_4);
+    uint32_t ruefVoltage = readVoltage(ADC1_CHANNEL_7);
     ruefFilter->input(ruefVoltage);
 
-    uint32_t vfVoltage = readVoltage(ADC1_CHANNEL_7);
+    uint32_t vfVoltage = readVoltage(ADC1_CHANNEL_4);
     vfFilter->input(vfVoltage);
 }
 
@@ -64,20 +64,37 @@ double TemperatureReader::calculateTemperature(uint32_t resistence, double offse
     return (resistence - offset) / factor;
 }
 
-
 double TemperatureReader::getOutsideTemperature() {
-    afResistence = calculateResistence(afFilter->output());
-    return calculateTemperature(afResistence, OUTSIDE_TEMP_OFFSET, OUTSIDE_TEMP_FACTOR);
+    int counter = 0;
+    float afVoltage = afFilter->output();
+    uint32_t afResistence = calculateResistence(afVoltage);
+    double afTemperature = calculateTemperature(afResistence, OUTSIDE_TEMP_OFFSET, OUTSIDE_TEMP_FACTOR);
+        char logData[100] = {0};
+        sprintf(logData, "outside: voltage:%.1f, resistence:%d, temperature:%.1f\n", afVoltage, afResistence, afTemperature);
+        Log.notice(logData);
+    return afTemperature;
 }
 
 double TemperatureReader::getFlowTemperature() {
-    vfResistence = calculateResistence(vfFilter->output());
-    return calculateTemperature(vfResistence, OUTSIDE_TEMP_OFFSET, OUTSIDE_TEMP_FACTOR);
+    int counter = 0;
+    float vfVoltage = vfFilter->output();
+    uint32_t vfResistence = calculateResistence(vfVoltage);
+    double vfTemperature = calculateTemperature(vfResistence, OUTSIDE_TEMP_OFFSET, OUTSIDE_TEMP_FACTOR);
+        char logData[100] = {0};
+        sprintf(logData, "flow: voltage:%.1f, resistence:%d, temperature:%.1f\n", vfVoltage, vfResistence, vfTemperature);
+        Log.notice(logData);
+    return vfTemperature;
 }
 
 double TemperatureReader::getReturnTemperature() {
-    ruefResistence = calculateResistence(ruefFilter->output());
-    return calculateTemperature(ruefResistence, OUTSIDE_TEMP_OFFSET, OUTSIDE_TEMP_FACTOR);
+    int counter = 0;
+    float ruefVoltage = ruefFilter->output();
+    uint32_t ruefResistence = calculateResistence(ruefVoltage);
+    double ruefTemperature = calculateTemperature(ruefResistence, OUTSIDE_TEMP_OFFSET, OUTSIDE_TEMP_FACTOR);
+        char logData[100] = {0};
+        sprintf(logData, "return: voltage:%.1f, resistence:%d, temperature:%.1f\n", ruefVoltage, ruefResistence, ruefTemperature);
+        Log.notice(logData);
+    return ruefTemperature;
 }
 
 void TemperatureReader::configUpdate(const char *id, const char *value) {
