@@ -41,9 +41,9 @@ void ValveController::setTargetValvePosition(int valveTarget) {
     Log.notice("Ventil Ziel: %d\n", valveTarget);
 
     // if completely open or closed, make sure it is really completely open/closed.
-    if (valveTarget == 100) {
+    if (valveTarget == 100 && valveCurrent < 100) {
         valveTarget = 103;
-    } else if (valveTarget == 0) {
+    } else if (valveTarget == 0 && valveCurrent > 0) {
         valveTarget = -3;
     }
     motorAdjustCounter = max(-103.0, min(103.0, (double)(valveTarget - valveCurrent))) * VALVE_ONE_PERCENT_OPEN_CYCLES;

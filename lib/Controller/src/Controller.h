@@ -49,8 +49,7 @@ class Controller : public NetworkModule, public PrefsClient {
         void loop();
         
         virtual void commandReceived(const char *command, const char *payload);
-        virtual void getTelemetryData(char *targetBuffer);  
-        
+        virtual void getTelemetryData(char *targetBuffer);        
         virtual void configUpdate(const char *id, const char *value);          
 
     private:

@@ -69,12 +69,15 @@ void Modules::getTelemetryData(char *targetBuffer) {
   strcpy(telemetryBuffer, "{");
   int currentLength = 1;
   for (int i = 0; i < length; i++) {
+    strcpy(telemetryBuffer + currentLength, "\"");
+    currentLength += 1;
+
     const char *moduleName = modules[i]->getName();
     strcpy(telemetryBuffer + currentLength, moduleName);
     currentLength += strlen(moduleName);
 
-    strcpy(telemetryBuffer + currentLength, ":");
-    currentLength += 1;
+    strcpy(telemetryBuffer + currentLength, "\":");
+    currentLength += 2;
 
     char moduleBuffer[100] = {0};
     modules[i]->getTelemetryData(moduleBuffer);
@@ -146,8 +149,6 @@ void Controller::setup() {
   }
 }
 
-void Controller::getTelemetryData(char *targetBuffer) {
-}
 
 void Controller::loop()
 {
@@ -224,4 +225,8 @@ void Controller::loop()
 
 void Controller::configUpdate(const char *id, const char *value) {
     enterConfigPortalPin = atoi(value);
+}
+
+void Controller::getTelemetryData(char *targetBuffer) {
+  sprintf(targetBuffer, "\"\"");
 }
