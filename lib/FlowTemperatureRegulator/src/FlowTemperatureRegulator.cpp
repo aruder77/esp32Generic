@@ -18,3 +18,9 @@ double FlowTemperatureRegulator::calculateValveTarget(double currentFlowTemperat
     Log.notice(buffer);
     return valveTarget;
 }
+
+void FlowTemperatureRegulator::setTunings(double kp, double tn) {
+    kP = kp;
+    kI = kp/tn;
+    pidController->SetTunings(kP, kI, kD, DIRECT);
+}

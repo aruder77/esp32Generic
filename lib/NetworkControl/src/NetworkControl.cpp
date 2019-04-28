@@ -150,6 +150,10 @@ void NetworkControl::loop()
 	mqttClient->loop();
 }
 
+void NetworkControl::everySecond() {
+	reconnect();
+}
+
 char *substr(const char *buff, uint8_t start, uint8_t len, char *substr)
 {
 	strncpy(substr, buff + start, len);

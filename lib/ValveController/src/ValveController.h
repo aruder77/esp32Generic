@@ -13,6 +13,8 @@ class ValveController : public PrefsClient {
         void setup();
         void every10Milliseconds();
         void setTargetValvePosition(int targetValvePosition);
+        double getValveCurrent();
+        int getValveTarget();
 
         void configUpdate(const char *id, const char *value);    
 

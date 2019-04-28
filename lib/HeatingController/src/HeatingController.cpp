@@ -1,6 +1,9 @@
 #include "HeatingController.h"
 
 HeatingController::HeatingController() {
+    prefs->registerConfigParam("kp", "PID-Konstante Kp", "2", 5, this);
+    prefs->registerConfigParam("tn", "PID-Konstante Tn", "120", 5, this); 
+    prefs->registerConfigParam("flowTemperatureTarget", "Ziel-Vorlauftemperatur", "40", 5, this); 
 }
 
 const char *HeatingController::getName() {
@@ -13,6 +16,12 @@ void HeatingController::setup() {
     targetFlowTemperatureCalculator = new TargetFlowTemperatureCalculator();
     valveController = new ValveController();
     heatPumpController = new HeatPumpController();
+
+    kp = prefs->getDouble("kp");
+    tn = prefs->getDouble("tn");
+    flowTemperatureRegulator->setTunings(kp, tn);
+
+    targetTemp = prefs->getDouble("flowTemperatureTarget");
 
     // always on for now
     heatPumpController->on();
@@ -28,8 +37,8 @@ void HeatingController::everySecond() {
         double outsideTemperature = temperatureReader->getOutsideTemperature();
         double flowTemperature = temperatureReader->getFlowTemperature();
 
-        double targetFlowTemperature = targetFlowTemperatureCalculator->calculateTargetFlowTemperature(outsideTemperature);
-        double valveTarget = flowTemperatureRegulator->calculateValveTarget(flowTemperature, targetFlowTemperature);
+        //double targetFlowTemperature = targetFlowTemperatureCalculator->calculateTargetFlowTemperature(outsideTemperature);
+        double valveTarget = flowTemperatureRegulator->calculateValveTarget(flowTemperature, targetTemp);
         char printStr[100];
         sprintf(printStr, "Ventil aktuell: %.1f, Ziel: %.1f\n", valveCurrent, valveTarget);
         Log.notice(printStr);
@@ -50,8 +59,10 @@ void HeatingController::getTelemetryData(char *targetBuffer) {
     double outsideTemperature = temperatureReader->getOutsideTemperature();
     double flowTemperature = temperatureReader->getFlowTemperature();
     double returnTemperature = temperatureReader->getReturnTemperature();
+    double valveCurrent = valveController->getValveCurrent();
+    int valveTarget = valveController->getValveTarget();
 
     char telemetryData[100] = {0};
-    sprintf(telemetryData, "{\"outside\":%.1f,\"return\":%.1f,\"flow\":%.1f}", outsideTemperature, returnTemperature, flowTemperature);
+    sprintf(telemetryData, "{\"outside\":%.1f,\"return\":%.1f,\"flow\":%.1f,\"valveCurrent\":%.1f,\"valveTarget\":%d}", outsideTemperature, returnTemperature, flowTemperature, valveCurrent, valveTarget);
     strcpy(targetBuffer, telemetryData);
 }

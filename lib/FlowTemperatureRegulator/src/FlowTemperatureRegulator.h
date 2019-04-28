@@ -9,6 +9,7 @@ class FlowTemperatureRegulator {
     public:
         FlowTemperatureRegulator();
         double calculateValveTarget(double currentFlowTemperature, double targetFlowTemperature);
+        void setTunings(double kp, double tn);
 
     private:
         PID *pidController = 0;

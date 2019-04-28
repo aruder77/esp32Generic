@@ -50,6 +50,12 @@ int Prefs::getInt(const char *key) {
     return atoi(strValue);
 }
 
+double Prefs::getDouble(const char *key) {
+    char strValue[7];
+    get(key, strValue);
+    return atof(strValue);
+}
+
 void Prefs::registerConfigParam(const char *id, const char *prompt, const char *defaultValue, int length, PrefsClient *prefsClient) {
     PrefsItem *prefsItem = new PrefsItem();
     prefsItems->prefsItems[numberOfConfigItems] = prefsItem;

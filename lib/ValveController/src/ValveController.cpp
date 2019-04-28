@@ -2,7 +2,8 @@
 
 ValveController::ValveController() {
     prefs->registerConfigParam("openPin", "Ventil-Öffnen-Pin", "19", 3, this);
-    prefs->registerConfigParam("closePin", "Ventil-Schliessen-Pin", "18", 3, this);    
+    prefs->registerConfigParam("closePin", "Ventil-Schliessen-Pin", "18", 3, this);   
+
     setup();
 }
 
@@ -52,4 +53,12 @@ void ValveController::setTargetValvePosition(int valveTarget) {
 
 
 void ValveController::configUpdate(const char *id, const char *value) {
+}
+
+double ValveController::getValveCurrent() {
+    return valveCurrent;
+}
+
+int ValveController::getValveTarget() {
+    return valveTarget;
 }

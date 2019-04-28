@@ -42,6 +42,9 @@ class HeatingController : public Module, public PrefsClient {
         double valveTarget = 0.0;
         double valveCurrent = 0.0;
 
+        double kp = 2.0;
+        double tn = 120;
+
 };
 
 #endif

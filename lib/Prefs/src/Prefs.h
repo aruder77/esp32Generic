@@ -40,6 +40,7 @@ class Prefs {
         void setInt(const char *key, int value);
         void get(const char *key, char *destinationBuffer);
         int getInt(const char *key);
+        double getDouble(const char *key);
 
         void registerConfigParam(const char *id, const char *prompt, const char *defaultValue, int length, PrefsClient *prefsClient);
         void configUpdate(const char *id, const char *value);

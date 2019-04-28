@@ -31,6 +31,8 @@ public:
 	const char *getName();
 	void setup();
 	void loop();
+	void everySecond();	
+	
 	void messageReceived(const char *topic, const char *message);
 	void send(const char *topic, const char *message);
 	void sendTelemetry(const char *data);
