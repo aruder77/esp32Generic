@@ -28,6 +28,14 @@ void HeatingController::setup() {
 }
 
 void HeatingController::configUpdate(const char *id, const char *value) {
+    Log.notice("heatingController config update: %s\n", id);
+    if (strcmp(id, "kp") == 0) {
+        flowTemperatureRegulator->setTunings(atof(value), tn);
+    } else if (strcmp(id, "tn") == 0) {
+        flowTemperatureRegulator->setTunings(kp, atof(value));
+    } else if (strcmp(id, "flowTemperatureTarget") == 0) {
+        targetTemp = atof(value);
+    }
 }
 
 

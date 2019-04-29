@@ -58,12 +58,13 @@ double Prefs::getDouble(const char *key) {
 
 void Prefs::registerConfigParam(const char *id, const char *prompt, const char *defaultValue, int length, PrefsClient *prefsClient) {
     PrefsItem *prefsItem = new PrefsItem();
-    prefsItems->prefsItems[numberOfConfigItems] = prefsItem;
     strcpy(prefsItem->id, id);
     strcpy(prefsItem->prompt, prompt);
     strcpy(prefsItem->defaultValue, defaultValue);
-    prefsItem->length = length;
-    prefsItems->prefsItems[numberOfConfigItems]->prefsClient = prefsClient;
+    prefsItem->length = length;    
+    prefsItem->prefsClient = prefsClient;
+
+    prefsItems->prefsItems[numberOfConfigItems] = prefsItem;
 
     Log.notice("registering %d with key %s with default value %s\n", numberOfConfigItems, prefsItems->prefsItems[numberOfConfigItems]->id, prefsItems->prefsItems[numberOfConfigItems]->defaultValue);
 
@@ -80,7 +81,7 @@ void Prefs::configUpdate(const char *id, const char *value) {
 
 PrefsClient *Prefs::getPrefsClientForConfigId(const char *configId) {
     for (int i = 0; i < numberOfConfigItems; i++) {
-        if (strcmp(configId, prefsItems->prefsItems[i]->id)) {
+        if (strcmp(configId, prefsItems->prefsItems[i]->id) == 0) {
             return prefsItems->prefsItems[i]->prefsClient;
         }
     }

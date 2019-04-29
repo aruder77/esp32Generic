@@ -2,6 +2,7 @@
 #define HeatPumpController_H_
 
 #include <Prefs.h>
+#include <ArduinoLog.h>
 
 class HeatPumpController : public PrefsClient {
     public:

@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <Ticker.h>
 #include <Prefs.h>
+#include <ArduinoLog.h>
 
 class LedController : public PrefsClient {
     public:

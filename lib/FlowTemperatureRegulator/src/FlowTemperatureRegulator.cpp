@@ -20,6 +20,9 @@ double FlowTemperatureRegulator::calculateValveTarget(double currentFlowTemperat
 }
 
 void FlowTemperatureRegulator::setTunings(double kp, double tn) {
+    char buffer[100];
+    sprintf(buffer, "new PID-settings: kp %.1f, tn %.1f\n", kp, tn);
+    Log.notice(buffer);
     kP = kp;
     kI = kp/tn;
     pidController->SetTunings(kP, kI, kD, DIRECT);

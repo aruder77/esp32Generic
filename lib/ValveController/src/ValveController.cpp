@@ -53,6 +53,7 @@ void ValveController::setTargetValvePosition(int valveTarget) {
 
 
 void ValveController::configUpdate(const char *id, const char *value) {
+    Log.notice("ValveController config update: %s\n", id);
 }
 
 double ValveController::getValveCurrent() {

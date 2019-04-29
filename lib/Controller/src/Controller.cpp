@@ -214,6 +214,8 @@ void Controller::loop()
     info.errorCallback = error;
     info.caCert = NULL;
     Log.notice("starting ota update!\n");
+    Log.notice("URL: %s\n", urlStr);
+    Log.notice("md5: %s\n", md5Str);
     httpFOTA.start(info);
 
     networkControl->send(OTA_TOPIC, "ok");

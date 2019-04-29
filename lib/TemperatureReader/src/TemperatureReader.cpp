@@ -98,4 +98,5 @@ double TemperatureReader::getReturnTemperature() {
 }
 
 void TemperatureReader::configUpdate(const char *id, const char *value) {
+    Log.notice("TemperatureReader config update: %s\n", id);
 }

@@ -53,5 +53,6 @@ void LedController::off() {
 }
 
 void LedController::configUpdate(const char *key, const char *value) {
+    Log.notice("LedController config update: %s\n", key);
     statusLedPin = atoi(value);
 }
