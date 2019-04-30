@@ -13,6 +13,13 @@ void ValveController::setup() {
 
     pinMode(openPin, OUTPUT);
     pinMode(closePin, OUTPUT);
+
+    // set valve to a defined, safe value (0%)
+    digitalWrite(openPin, LOW);
+    digitalWrite(closePin, HIGH);
+    sleep(VALVE_ONE_PERCENT_OPEN_CYCLES * 100 / 1000);
+    digitalWrite(openPin, LOW);
+    digitalWrite(closePin, LOW);
 }
 
 void ValveController::every10Milliseconds() {
