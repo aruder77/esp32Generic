@@ -22,6 +22,7 @@ void ValveController::every10Milliseconds() {
         digitalWrite(closePin, LOW);
         if ((motorAdjustCounter % VALVE_ONE_PERCENT_OPEN_CYCLES) == 0 && valveCurrent < 100) {
             valveCurrent++;
+            adjustTargetValvePosition();
         }
         motorAdjustCounter--;    
     } else if (motorAdjustCounter < 0) {
@@ -29,6 +30,7 @@ void ValveController::every10Milliseconds() {
         digitalWrite(closePin, HIGH);
         if ((motorAdjustCounter % VALVE_ONE_PERCENT_OPEN_CYCLES) == 0 && valveCurrent > 0) {
             valveCurrent--;
+            adjustTargetValvePosition();
         }
         motorAdjustCounter++;
     } else {
@@ -38,17 +40,25 @@ void ValveController::every10Milliseconds() {
     }
 }
 
-void ValveController::setTargetValvePosition(int valveTarget) {
-    Log.notice("Ventil Ziel: %d\n", valveTarget);
+void ValveController::adjustTargetValvePosition() {
+    if (tempValveTarget != valveTarget) {
+        Log.notice("Ventil Ziel: %d\n", valveTarget);
+        this->valveTarget = valveTarget;
 
-    // if completely open or closed, make sure it is really completely open/closed.
-    if (valveTarget == 100 && valveCurrent < 100) {
-        valveTarget = 103;
-    } else if (valveTarget == 0 && valveCurrent > 0) {
-        valveTarget = -3;
+        // if completely open or closed, make sure it is really completely open/closed.
+        if (valveTarget == 100 && valveCurrent < 100) {
+            valveTarget = 103;
+        } else if (valveTarget == 0 && valveCurrent > 0) {
+            valveTarget = -3;
+        }
+        motorAdjustCounter = max(-103.0, min(103.0, (double)(valveTarget - valveCurrent))) * VALVE_ONE_PERCENT_OPEN_CYCLES;
+        Log.notice("MotorAdjustCounter: %d\n", motorAdjustCounter);
+        tempValveTarget = valveTarget;
     }
-    motorAdjustCounter = max(-103.0, min(103.0, (double)(valveTarget - valveCurrent))) * VALVE_ONE_PERCENT_OPEN_CYCLES;
-    Log.notice("MotorAdjustCounter: %d\n", motorAdjustCounter);
+}
+
+void ValveController::setTargetValvePosition(int valveTarget) {
+    tempValveTarget = valveTarget;
 }
 
 
@@ -56,7 +66,7 @@ void ValveController::configUpdate(const char *id, const char *value) {
     Log.notice("ValveController config update: %s\n", id);
 }
 
-double ValveController::getValveCurrent() {
+int ValveController::getValveCurrent() {
     return valveCurrent;
 }
 

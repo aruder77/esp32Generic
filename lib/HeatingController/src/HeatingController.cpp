@@ -42,7 +42,6 @@ void HeatingController::configUpdate(const char *id, const char *value) {
 void HeatingController::everySecond() {
     // every minute
     if (loopCounter == 10) {
-        double outsideTemperature = temperatureReader->getOutsideTemperature();
         double flowTemperature = temperatureReader->getFlowTemperature();
 
         //double targetFlowTemperature = targetFlowTemperatureCalculator->calculateTargetFlowTemperature(outsideTemperature);
@@ -67,10 +66,10 @@ void HeatingController::getTelemetryData(char *targetBuffer) {
     double outsideTemperature = temperatureReader->getOutsideTemperature();
     double flowTemperature = temperatureReader->getFlowTemperature();
     double returnTemperature = temperatureReader->getReturnTemperature();
-    double valveCurrent = valveController->getValveCurrent();
+    int valveCurrent = valveController->getValveCurrent();
     int valveTarget = valveController->getValveTarget();
 
     char telemetryData[100] = {0};
-    sprintf(telemetryData, "{\"outside\":%.1f,\"return\":%.1f,\"flow\":%.1f,\"valveCurrent\":%.1f,\"valveTarget\":%d}", outsideTemperature, returnTemperature, flowTemperature, valveCurrent, valveTarget);
+    sprintf(telemetryData, "{\"outside\":%.1f,\"return\":%.1f,\"flow\":%.1f,\"valveCurrent\":%d,\"valveTarget\":%d}", outsideTemperature, returnTemperature, flowTemperature, valveCurrent, valveTarget);
     strcpy(targetBuffer, telemetryData);
 }

@@ -65,7 +65,6 @@ double TemperatureReader::calculateTemperature(uint32_t resistence, double offse
 }
 
 double TemperatureReader::getOutsideTemperature() {
-    int counter = 0;
     float afVoltage = afFilter->output();
     uint32_t afResistence = calculateResistence(afVoltage);
     double afTemperature = calculateTemperature(afResistence, OUTSIDE_TEMP_OFFSET, OUTSIDE_TEMP_FACTOR);
@@ -76,7 +75,6 @@ double TemperatureReader::getOutsideTemperature() {
 }
 
 double TemperatureReader::getFlowTemperature() {
-    int counter = 0;
     float vfVoltage = vfFilter->output();
     uint32_t vfResistence = calculateResistence(vfVoltage);
     double vfTemperature = calculateTemperature(vfResistence, OUTSIDE_TEMP_OFFSET, OUTSIDE_TEMP_FACTOR);
@@ -87,7 +85,6 @@ double TemperatureReader::getFlowTemperature() {
 }
 
 double TemperatureReader::getReturnTemperature() {
-    int counter = 0;
     float ruefVoltage = ruefFilter->output();
     uint32_t ruefResistence = calculateResistence(ruefVoltage);
     double ruefTemperature = calculateTemperature(ruefResistence, OUTSIDE_TEMP_OFFSET, OUTSIDE_TEMP_FACTOR);

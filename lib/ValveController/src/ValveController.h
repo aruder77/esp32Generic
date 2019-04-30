@@ -13,8 +13,9 @@ class ValveController : public PrefsClient {
         void setup();
         void every10Milliseconds();
         void setTargetValvePosition(int targetValvePosition);
-        double getValveCurrent();
+        int getValveCurrent();
         int getValveTarget();
+        void adjustTargetValvePosition();
 
         void configUpdate(const char *id, const char *value);    
 
@@ -28,8 +29,9 @@ class ValveController : public PrefsClient {
 
         int motorAdjustCounter = 0;
 
-        double valveCurrent = 0.0;
+        int valveCurrent = 0;
         int valveTarget = 0;
+        int tempValveTarget = 0;
 };
 
 #endif
