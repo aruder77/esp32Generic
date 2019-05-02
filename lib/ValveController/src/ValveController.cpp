@@ -17,7 +17,7 @@ void ValveController::setup() {
     // set valve to a defined, safe value (0%)
     digitalWrite(openPin, LOW);
     digitalWrite(closePin, HIGH);
-    sleep(VALVE_ONE_PERCENT_OPEN_CYCLES * 100 / 1000);
+    delay(VALVE_ONE_PERCENT_OPEN_CYCLES * 10 * 100);
     digitalWrite(openPin, LOW);
     digitalWrite(closePin, LOW);
 }
@@ -44,13 +44,14 @@ void ValveController::every10Milliseconds() {
         // keep current valve position
         digitalWrite(openPin, LOW);
         digitalWrite(closePin, LOW);
+        adjustTargetValvePosition();
     }
 }
 
 void ValveController::adjustTargetValvePosition() {
     if (tempValveTarget != valveTarget) {
+        this->valveTarget = tempValveTarget;
         Log.notice("Ventil Ziel: %d\n", valveTarget);
-        this->valveTarget = valveTarget;
 
         // if completely open or closed, make sure it is really completely open/closed.
         if (valveTarget == 100 && valveCurrent < 100) {
@@ -60,7 +61,6 @@ void ValveController::adjustTargetValvePosition() {
         }
         motorAdjustCounter = max(-103.0, min(103.0, (double)(valveTarget - valveCurrent))) * VALVE_ONE_PERCENT_OPEN_CYCLES;
         Log.notice("MotorAdjustCounter: %d\n", motorAdjustCounter);
-        tempValveTarget = valveTarget;
     }
 }
 
