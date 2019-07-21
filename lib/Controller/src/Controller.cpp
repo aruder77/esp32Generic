@@ -127,7 +127,7 @@ Controller::Controller()
   ledController = LedController::getInstance();
 
   // register prefs
-  prefs->registerConfigParam("ConfigPortalPin", "Config-Portal Pin", "32", 3, this);
+  prefs->registerConfigParam("ConfigPortalPin", "Config-Portal Pin", "13", 3, this);
 
   // create all modules 
   networkControl = NetworkControl::getInstance();
@@ -141,6 +141,7 @@ Controller::Controller()
 
 void Controller::setup() {
   enterConfigPortalPin = prefs->getInt("ConfigPortalPin");
+  enterConfigPortalPin = 13;
   pinMode(enterConfigPortalPin, INPUT_PULLUP);  
 
   networkControl->subscribeToCommand(OTA_TOPIC, this);
@@ -159,13 +160,13 @@ void Controller::loop()
   {
   case Runnning_e:
 
-      // is configuration portal requested?
-    /*if ( digitalRead(enterConfigPortalPin) == LOW) {
+    // is configuration portal requested?
+    if ( digitalRead(enterConfigPortalPin) == LOW) {
       networkControl->enterConfigPortal();
 
       //if you get here you have connected to the WiFi
       Log.notice("connected...yeey :)\n");
-    }*/
+    }
 
     modules.loop();
 
