@@ -78,6 +78,7 @@ class Controller : public NetworkModule, public PrefsClient {
             "-----END CERTIFICATE-----";
 
         NetworkControl* networkControl;
+        DisplayControl* displayControl;
         Prefs* prefs;
         LedController* ledController;
         HeatingController* heatingController;
