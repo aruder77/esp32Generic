@@ -67,7 +67,7 @@ const char *NetworkControl::getName() {
 	return "network";
 }
 
-void NetworkControl::setup() {
+void NetworkControl::afterSetup() {
 	//set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
 	wifiManager.setAPCallback(configModeCallback);
 	wifiManager.setSaveConfigCallback(saveConfigCallback);

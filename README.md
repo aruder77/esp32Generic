@@ -5,17 +5,19 @@ PIN assignments.
 * LED: 2
 * BUTTON: 13
 * ACTORS
-** PUMP: 5
-** VALVE_OPEN: 19
-** VALVE_CLOSE: 18
+** PUMP: 4
+** VALVE_OPEN: 26
+** VALVE_CLOSE: 27
 * SENSORS
 ** FLOW_TEMP: 32
 ** RETURN_TEMP: 35
 ** OUTSIDE_TEMP: 34
 * TFT
-** CS: 15
-** DC: 0
-** RST: 2
-** MOSI: 8
-** MISO: 7 
-** SCLK: 6
+ ** TFT_MISO 25
+ ** TFT_MOSI 23
+ ** TFT_SCLK 19 -
+ ** TFT_CS 22
+ ** TFT_DC 21
+ ** TFT_RST 18 -
+ ** TFT_BL 5 -
+

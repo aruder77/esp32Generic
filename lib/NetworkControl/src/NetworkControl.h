@@ -29,7 +29,7 @@ public:
     static bool exists();
 
 	const char *getName();
-	void setup();
+	void afterSetup();
 	void loop();
 	void everySecond();	
 	

@@ -32,6 +32,7 @@ class Modules {
         uint8_t count();
 
         virtual void setup();
+        virtual void afterSetup();
         virtual void loop();
         virtual void every10Milliseconds();
         virtual void every50Milliseconds();

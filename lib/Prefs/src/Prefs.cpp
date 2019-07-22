@@ -91,7 +91,6 @@ PrefsClient *Prefs::getPrefsClientForConfigId(const char *configId) {
 PrefsItem *Prefs::getPrefsItem(const char *configId) {
     Log.notice("getPrefsItem for key %s\n", configId);
     for (int i = 0; i < numberOfConfigItems; i++) {
-        Log.notice("i = %d\n", i);
         if (strcmp(configId, prefsItems->prefsItems[i]->id) == 0) {
             Log.notice("match! using pref id %s with default value %s\n", configId, prefsItems->prefsItems[i]->defaultValue);
             Log.notice("prefs match: %s, %s\n", prefsItems->prefsItems[i]->id, prefsItems->prefsItems[i]->defaultValue);

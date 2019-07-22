@@ -8,6 +8,7 @@ class Module {
     public:
         virtual const char *getName();
         virtual void setup();
+        virtual void afterSetup();
         virtual void loop();
         virtual void every10Milliseconds();
         virtual void every50Milliseconds();

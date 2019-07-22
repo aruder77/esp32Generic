@@ -1,8 +1,8 @@
 #include "ValveController.h"
 
 ValveController::ValveController() {
-    prefs->registerConfigParam("openPin", "Ventil-Öffnen-Pin", "19", 3, this);
-    prefs->registerConfigParam("closePin", "Ventil-Schliessen-Pin", "18", 3, this);   
+    prefs->registerConfigParam("openPin", "Ventil-Öffnen-Pin", "26", 3, this);
+    prefs->registerConfigParam("closePin", "Ventil-Schliessen-Pin", "27", 3, this);   
 
     setup();
 }
@@ -51,7 +51,7 @@ void ValveController::every10Milliseconds() {
 void ValveController::adjustTargetValvePosition() {
     if (tempValveTarget != valveTarget) {
         this->valveTarget = tempValveTarget;
-        Log.notice("Ventil Ziel: %d\n", valveTarget);
+        Log.verbose("Ventil Ziel: %d\n", valveTarget);
 
         // if completely open or closed, make sure it is really completely open/closed.
         if (valveTarget == 100 && valveCurrent < 100) {
@@ -60,7 +60,7 @@ void ValveController::adjustTargetValvePosition() {
             valveTarget = -3;
         }
         motorAdjustCounter = max(-103.0, min(103.0, (double)(valveTarget - valveCurrent))) * VALVE_ONE_PERCENT_OPEN_CYCLES;
-        Log.notice("MotorAdjustCounter: %d\n", motorAdjustCounter);
+        Log.trace("MotorAdjustCounter: %d\n", motorAdjustCounter);
     }
 }
 

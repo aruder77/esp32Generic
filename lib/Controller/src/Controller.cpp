@@ -34,6 +34,12 @@ void Modules::setup() {
   }  
 };
 
+void Modules::afterSetup() {
+  for (int i = 0; i < length; i++) {
+    modules[i]->afterSetup();
+  }  
+};
+
 void Modules::loop() {
   for (int i = 0; i < length; i++) {
     modules[i]->loop();
@@ -149,6 +155,11 @@ void Controller::setup() {
   for (int i = 0; i < modules.count(); i++) {
     modules.getAt(i)->setup();
   }
+
+  for (int i = 0; i < modules.count(); i++) {
+    modules.getAt(i)->afterSetup();
+  }
+
 }
 
 

@@ -3,6 +3,9 @@
 void Module::setup() {
 }
 
+void Module::afterSetup() {
+}
+
 void Module::loop() {
 }
 
