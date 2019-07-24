@@ -139,9 +139,7 @@ Controller::Controller()
   networkControl = NetworkControl::getInstance();
   displayControl = DisplayControl::getInstance();
   modules.addModule(networkControl);
-  modules.addModule(new HeatingController());
   modules.addModule(displayControl);
-  modules.addModule(new PWMController());
 
   setup();
 }
