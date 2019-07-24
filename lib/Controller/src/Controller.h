@@ -10,6 +10,7 @@
 #include <NetworkModule.h>
 #include <HeatingController.h>
 #include <DisplayControl.h>
+#include <PWMController.h>
 
 /* topics */
 #define OTA_TOPIC "ota"

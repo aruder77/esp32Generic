@@ -20,4 +20,6 @@ PIN assignments.
  ** TFT_DC 21
  ** TFT_RST 18 -
  ** TFT_BL 5 -
+ * PWM
+ ** PIN1 27
 
