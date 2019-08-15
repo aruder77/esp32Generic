@@ -36,6 +36,7 @@ public:
 	void messageReceived(const char *topic, const char *message);
 	void send(const char *topic, const char *message);
 	void sendTelemetry(const char *data);
+	void sendStat(const char *subTopic, const char *message);
 	bool isConnected();
 
 	void subscribeToCommand(const char *command, NetworkModule *networkModule);

@@ -184,6 +184,14 @@ void NetworkControl::sendTelemetry(const char *data) {
 	send(teleTopic, data);
 }
 
+void NetworkControl::sendStat(const char *subTopic, const char *message)
+{
+	char statTopic[100] = {0};
+	sprintf(statTopic, "stat/%s/%s", clientId, subTopic);
+	Log.notice("MQTT send topic %s: %s\n", statTopic, message);
+	mqttClient->publish(statTopic, message);
+}
+
 bool NetworkControl::exists()
 {
 	return instance != 0;
