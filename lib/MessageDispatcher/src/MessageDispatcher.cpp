@@ -14,7 +14,7 @@ void MessageDispatcher::messageReceived(const char *topic, const char *message) 
 
 void MessageDispatcher::notifyModules(const char *commandName, const char *message) {
 	for (int i = 0; i < numberOfModulesSubscribed; i++) {
-		if (strcmp(commandName, subscribedCommands[i]) == 0) {
+		if (strncmp(commandName, subscribedCommands[i], strlen(subscribedCommands[i])) == 0) {
 			modules[i]->commandReceived(commandName, message);
 		}
 	}
