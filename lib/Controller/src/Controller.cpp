@@ -228,9 +228,10 @@ void Controller::loop()
     Log.notice("starting ota update!\n");
     Log.notice("URL: %s\n", urlStr);
     Log.notice("md5: %s\n", md5Str);
+    networkControl->sendStat(OTA_TOPIC, "starting ota update!");
     httpFOTA.start(info);
 
-    networkControl->send(OTA_TOPIC, "ok");
+    networkControl->sendStat(OTA_TOPIC, "ok");
     break;
   default:
     break;

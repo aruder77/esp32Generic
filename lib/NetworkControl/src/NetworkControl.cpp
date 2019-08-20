@@ -108,7 +108,7 @@ void NetworkControl::subscribeTopic(const char *clientId) {
 	mqttClient->subscribe(configTopic);
 
 	char statusTopic[100];
-	sprintf(statusTopic, "tele/%s/status", clientId);
+	sprintf(statusTopic, "tele/%s/hello", clientId);
 	send(statusTopic, "Hello, world!");	
 }
 
