@@ -9,6 +9,7 @@
 #include <LedController.h>
 #include <NetworkModule.h>
 #include <DisplayControl.h>
+#include <OneButton.h>
 
 /* topics */
 #define OTA_TOPIC "ota"
@@ -42,11 +43,16 @@ class Modules {
 
 class Controller : public NetworkModule, public PrefsClient {
     public:
-        Controller();
-        ~Controller();
+        virtual ~Controller();
+
+        static Controller* getInstance();           
 
         void setup();
         void loop();
+
+        void buttonClick();
+        void buttonDoubleClick();
+        void buttonLongPressed();
         
         virtual void commandReceived(const char *command, const char *payload);
         virtual void getTelemetryData(char *targetBuffer);        
@@ -55,6 +61,9 @@ class Controller : public NetworkModule, public PrefsClient {
     private:
         static const int BAUD_RATE = 115200;
         static const int LOOP_INTERVAL_IN_MS = 10;
+        static const int LONG_PRESS_TIME = 10000;
+
+        static Controller *instance;
         const char *root_ca = \
             "-----BEGIN CERTIFICATE-----\n"\
             "MIIDSjCCAjKgAwIBAgIQRK+wgNajJ7qJMDmGLvhAazANBgkqhkiG9w0BAQUFADA/\n"\
@@ -77,10 +86,13 @@ class Controller : public NetworkModule, public PrefsClient {
             "Ob8VZRzI9neWagqNdwvYkQsEjgfbKbYK7p2CNTUQ\n"\
             "-----END CERTIFICATE-----";
 
+        Controller();
+
         NetworkControl* networkControl;
         DisplayControl* displayControl;
         Prefs* prefs;
         LedController* ledController;
+        OneButton *oneButton;
 
         Modules modules;
 
@@ -92,6 +104,10 @@ class Controller : public NetworkModule, public PrefsClient {
 
         long timer = 0;
         int loopCounter = 0;
+
+        bool wasClicked = false;
+        bool wasDoubleClicked = false;
+        bool wasLongClicked = false;
 };
 
 #endif

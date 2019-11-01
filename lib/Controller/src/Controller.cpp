@@ -1,6 +1,5 @@
 #include <Controller.h>
 
-
 void progress(DlState state, int percent)
 {
   Log.notice("state = %d - percent = %d\n", state, percent);
@@ -14,6 +13,21 @@ void startDl(void) {
 }
 
 void endDl(void) {
+}
+
+void click() {
+  Log.notice("Klick!");
+  Controller::getInstance()->buttonClick();
+}
+
+void doubleClick() {
+  Log.notice("DoubleKlick!");
+  Controller::getInstance()->buttonDoubleClick();
+}
+
+void longPressed() {
+  Log.notice("LongPress!");
+  Controller::getInstance()->buttonLongPressed();
 }
 
 void Modules::addModule(Module *module) {
@@ -99,6 +113,22 @@ void Modules::getTelemetryData(char *targetBuffer) {
   strcpy(targetBuffer, telemetryBuffer);
 };
 
+Controller *Controller::instance = 0;
+
+Controller *Controller::getInstance()
+{
+	// The only instance
+	// Guaranteed to be lazy initialized
+	// Guaranteed that it will be destroyed correctly
+	if (!Controller::instance)
+	{
+		Controller::instance = new Controller();
+	}
+	return Controller::instance;
+}
+
+
+
 void Controller::commandReceived(const char *command, const char *payload) {
   if (strcmp(OTA_TOPIC, command) == 0) {
     memset(url, 0, 100);
@@ -135,6 +165,10 @@ Controller::Controller()
   // register prefs
   prefs->registerConfigParam("ConfigPortalPin", "Config-Portal Pin", "13", 3, this);
 
+  // short press -> reset
+  // long press 10 sec -> complete reset
+  // double press -> config mode
+
   // create all modules 
   networkControl = NetworkControl::getInstance();
   displayControl = DisplayControl::getInstance();
@@ -144,11 +178,19 @@ Controller::Controller()
   setup();
 }
 
+Controller::~Controller() {
+}
+
 void Controller::setup() {
   enterConfigPortalPin = prefs->getInt("ConfigPortalPin");
-  enterConfigPortalPin = 13;
-  pinMode(enterConfigPortalPin, INPUT_PULLUP);  
-
+  enterConfigPortalPin = 27;
+  oneButton = new OneButton(enterConfigPortalPin, true);
+  oneButton->setClickTicks(200);
+  oneButton->setPressTicks(LONG_PRESS_TIME);
+  oneButton->attachClick(click);
+  oneButton->attachDoubleClick(doubleClick);
+  oneButton->attachLongPressStop(longPressed);
+  
   networkControl->subscribeToCommand(OTA_TOPIC, this);
 
   for (int i = 0; i < modules.count(); i++) {
@@ -166,16 +208,36 @@ void Controller::loop()
 {
   unsigned long currentMillis = millis();
 
+  oneButton->tick();
+
   switch (state)
   {
   case Runnning_e:
 
     // is configuration portal requested?
-    if ( digitalRead(enterConfigPortalPin) == LOW) {
+    if ( wasClicked ) {
+      wasClicked = false;
+      Log.notice("Entering config portal...\n");
       networkControl->enterConfigPortal();
 
       //if you get here you have connected to the WiFi
       Log.notice("connected...yeey :)\n");
+    }
+
+    // reset per double click requested
+    if (wasDoubleClicked) {
+      wasDoubleClicked = false;
+      Log.notice("Resetting controller...\n");
+      ESP.restart();
+    }
+
+    // reset completely as requested per long click
+    if (wasLongClicked) {
+      wasLongClicked = false;
+      Log.notice("Resetting and erasing all configuration...\n");
+      prefs->clear();
+      networkControl->reset();
+      networkControl->enterConfigPortal();
     }
 
     modules.loop();
@@ -236,6 +298,18 @@ void Controller::loop()
   default:
     break;
   }
+}
+
+void Controller::buttonClick() {
+  wasClicked = true;
+}
+
+void Controller::buttonDoubleClick() {
+  wasDoubleClicked = true;
+}
+
+void Controller::buttonLongPressed() {
+  wasLongClicked = true;
 }
 
 void Controller::configUpdate(const char *id, const char *value) {

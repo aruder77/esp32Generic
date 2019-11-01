@@ -5,7 +5,7 @@ Controller *controller;
 
 void setup()
 {
-    controller = new Controller();
+    controller = Controller::getInstance();
 }
 
 void loop()

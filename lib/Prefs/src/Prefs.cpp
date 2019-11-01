@@ -38,9 +38,8 @@ void Prefs::get(const char *key, char *destinationBuffer) {
     strcpy(destinationBuffer, preferences.getString(key).c_str());
     if (strlen(destinationBuffer) == 0) {
         strcpy(destinationBuffer, getPrefsItem(key)->defaultValue);
-        Log.notice("Prefs key %s using default value %s\n", key, destinationBuffer);
     }
-    Log.notice("Prefs->get returning %s\n", destinationBuffer);
+    Log.notice("Prefs->get returning %s for key %s\n", destinationBuffer, key);
     preferences.end();    
 }
 
@@ -89,11 +88,8 @@ PrefsClient *Prefs::getPrefsClientForConfigId(const char *configId) {
 }
 
 PrefsItem *Prefs::getPrefsItem(const char *configId) {
-    Log.notice("getPrefsItem for key %s\n", configId);
     for (int i = 0; i < numberOfConfigItems; i++) {
         if (strcmp(configId, prefsItems->prefsItems[i]->id) == 0) {
-            Log.notice("match! using pref id %s with default value %s\n", configId, prefsItems->prefsItems[i]->defaultValue);
-            Log.notice("prefs match: %s, %s\n", prefsItems->prefsItems[i]->id, prefsItems->prefsItems[i]->defaultValue);
             return prefsItems->prefsItems[i];
         }
     }
@@ -102,4 +98,8 @@ PrefsItem *Prefs::getPrefsItem(const char *configId) {
 
 PrefsItems *Prefs::getPrefsItems() {
     return prefsItems;
+}
+
+void Prefs::clear() {
+    preferences.clear();
 }

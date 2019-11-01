@@ -44,6 +44,8 @@ public:
 	void enterConfigPortal();
     void configUpdate(const char *id, const char *value);
 
+	void reset();
+
 private:
 	static NetworkControl* instance;
 
@@ -65,6 +67,8 @@ private:
 	void reconnect();
 	void subscribeTopic(const char *clientId);
 	void unsubscribeTopic(const char *clientId);
+
+	void addWifiManagerParameter();
 
 	static void configModeCallback(WiFiManager *myWiFiManager);
 	static void saveConfigCallback();

@@ -42,7 +42,6 @@ NetworkControl::NetworkControl() {
 	mqttClient = new PubSubClient(*espClient);
 
 	prefs = Prefs::getInstance();
-	Log.notice("NetworkControl Prefs %d\n", prefs);
 	ledController = LedController::getInstance();
 
 	// initialize prefs
@@ -57,6 +56,7 @@ NetworkControl::NetworkControl() {
 	mqttClient->setServer(mqtt_server, 1883);
 
 	prefs->get("clientId", clientId);
+	Log.notice("loaded clientId from eeprom: %s\n", clientId);
 }
 
 NetworkControl::~NetworkControl()
@@ -67,11 +67,7 @@ const char *NetworkControl::getName() {
 	return "network";
 }
 
-void NetworkControl::afterSetup() {
-	//set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
-	wifiManager.setAPCallback(configModeCallback);
-	wifiManager.setSaveConfigCallback(saveConfigCallback);
-
+void NetworkControl::addWifiManagerParameter() {
 	PrefsItems *prefsItems = prefs->getPrefsItems();
 
 	Log.notice("number of config items: %d\n", prefsItems->length);
@@ -83,7 +79,15 @@ void NetworkControl::afterSetup() {
 		Log.notice("adding config item %s\n", prefsItems->prefsItems[i]->id);
 		params[i] = new WiFiManagerParameter(prefsItems->prefsItems[i]->id, prefsItems->prefsItems[i]->prompt, prefsItems->prefsItems[i]->defaultValue, prefsItems->prefsItems[i]->length);
 		wifiManager.addParameter(params[i]);
-	}
+	}	
+}
+
+void NetworkControl::afterSetup() {
+	//set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
+	wifiManager.setAPCallback(configModeCallback);
+	wifiManager.setSaveConfigCallback(saveConfigCallback);
+
+	addWifiManagerParameter();
 
 	ledController->blinkFast();
 	if (wifiManager.autoConnect())
@@ -233,7 +237,6 @@ void NetworkControl::enterConfigPortal()
 	}
 
 	for (int i = 0; i < wifiParamCount; i++) {
-		Log.notice("saving wifiParam[%d] to prefs: %s, %s\n", i, params[i]->getID(), params[i]->getValue());
 		prefs->set(params[i]->getID(), params[i]->getValue());
 	}
 
@@ -253,5 +256,10 @@ void NetworkControl::configUpdate(const char *id, const char *value) {
 		strcpy(clientId, value);
 		subscribeTopic(clientId);
 	}
+}
+
+void NetworkControl::reset() {
+	WiFi.disconnect(false, true);
+	wifiManager.resetSettings();
 }
 

@@ -45,6 +45,8 @@ class Prefs {
         void registerConfigParam(const char *id, const char *prompt, const char *defaultValue, int length, PrefsClient *prefsClient);
         void configUpdate(const char *id, const char *value);
 
+        void clear();
+
         PrefsItems *getPrefsItems();
         PrefsItem *getPrefsItem(const char *configId);
 
