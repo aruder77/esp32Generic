@@ -185,7 +185,6 @@ void Controller::setup() {
   enterConfigPortalPin = prefs->getInt("ConfigPortalPin");
   enterConfigPortalPin = 27;
   oneButton = new OneButton(enterConfigPortalPin, true);
-  oneButton->setClickTicks(200);
   oneButton->setPressTicks(LONG_PRESS_TIME);
   oneButton->attachClick(click);
   oneButton->attachDoubleClick(doubleClick);
@@ -237,7 +236,8 @@ void Controller::loop()
       Log.notice("Resetting and erasing all configuration...\n");
       prefs->clear();
       networkControl->reset();
-      networkControl->enterConfigPortal();
+      delay(1000);
+      ESP.restart();
     }
 
     modules.loop();

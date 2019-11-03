@@ -20,6 +20,7 @@
 #include <MessageDispatcher.h>
 
 #define RECONNECT_LOOP_COUNT 100
+#define WIFI_CONNECT_TIMEOUT 2000
 
 
 class NetworkControl : public Module, public PrefsClient {
@@ -50,7 +51,6 @@ private:
 	static NetworkControl* instance;
 
 	PubSubClient* mqttClient;
-    WiFiManager wifiManager;
 
 	Prefs* prefs;
 	LedController* ledController;
@@ -59,9 +59,7 @@ private:
 	int loop_counter = 0;
 	char mqtt_server[100] = {0};
 	char clientId[20] = {0};
-
-	WiFiManagerParameter **params;
-	int wifiParamCount;
+	static bool saveConfig;
 
 	NetworkControl();
 	void reconnect();
@@ -69,6 +67,8 @@ private:
 	void unsubscribeTopic(const char *clientId);
 
 	void addWifiManagerParameter();
+	void configureConfigPortal(WiFiManager *wifiManager);
+	uint8_t waitForConnectResult();
 
 	static void configModeCallback(WiFiManager *myWiFiManager);
 	static void saveConfigCallback();

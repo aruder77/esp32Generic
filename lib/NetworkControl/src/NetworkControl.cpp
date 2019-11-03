@@ -10,6 +10,8 @@
 
 NetworkControl *NetworkControl::instance = 0;
 
+bool NetworkControl::saveConfig = false;
+
 void callback(char *topic, byte *payload, unsigned int length)
 {
 	char data[length + 1];
@@ -67,33 +69,34 @@ const char *NetworkControl::getName() {
 	return "network";
 }
 
-void NetworkControl::addWifiManagerParameter() {
-	PrefsItems *prefsItems = prefs->getPrefsItems();
-
-	Log.notice("number of config items: %d\n", prefsItems->length);
-	wifiParamCount = prefsItems->length;
-	params = new WiFiManagerParameter*[wifiParamCount];
-
-	for (int i = 0; i < wifiParamCount; i++)
-	{
-		Log.notice("adding config item %s\n", prefsItems->prefsItems[i]->id);
-		params[i] = new WiFiManagerParameter(prefsItems->prefsItems[i]->id, prefsItems->prefsItems[i]->prompt, prefsItems->prefsItems[i]->defaultValue, prefsItems->prefsItems[i]->length);
-		wifiManager.addParameter(params[i]);
-	}	
+uint8_t NetworkControl::waitForConnectResult() {
+    unsigned long start = millis();
+    boolean keepConnecting = true;
+    uint8_t status;
+    while (keepConnecting) {
+      status = WiFi.status();
+      if (millis() > start + WIFI_CONNECT_TIMEOUT) {
+        keepConnecting = false;
+      }
+      if (status == WL_CONNECTED || status == WL_CONNECT_FAILED) {
+        keepConnecting = false;
+      }
+      delay(100);
+    }
+    return status;
 }
 
-void NetworkControl::afterSetup() {
-	//set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
-	wifiManager.setAPCallback(configModeCallback);
-	wifiManager.setSaveConfigCallback(saveConfigCallback);
 
-	addWifiManagerParameter();
+void NetworkControl::afterSetup() {
 
 	ledController->blinkFast();
-	if (wifiManager.autoConnect())
+	WiFi.begin();
+	if (waitForConnectResult() == WL_CONNECTED)
 	{
 		//keep LED on
 		ledController->on();
+	} else {
+		enterConfigPortal();
 	}
 
 	// Allow the hardware to sort itself out
@@ -218,11 +221,35 @@ void NetworkControl::configModeCallback(WiFiManager *myWiFiManager)
 
 //gets called when WiFiManager saves config
 void NetworkControl::saveConfigCallback() {
+	saveConfig = true;
 }
+
 
 void NetworkControl::enterConfigPortal()
 {
+	WiFiManager wifiManager;
+
 	Log.notice("entering config portal mode...\n");
+
+		//set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
+	wifiManager.setAPCallback(configModeCallback);
+	wifiManager.setSaveConfigCallback(saveConfigCallback);
+
+	PrefsItems *prefsItems = prefs->getPrefsItems();
+
+	Log.notice("number of config items: %d\n", prefsItems->length);
+	int wifiParamCount = prefsItems->length;
+	WiFiManagerParameter **params = new WiFiManagerParameter*[wifiParamCount];
+
+	for (int i = 0; i < wifiParamCount; i++)
+	{
+		Log.notice("adding config item %s\n", prefsItems->prefsItems[i]->id);
+		char currentValue[50];
+		prefs->get(prefsItems->prefsItems[i]->id, currentValue);
+		params[i] = new WiFiManagerParameter(prefsItems->prefsItems[i]->id, prefsItems->prefsItems[i]->prompt, currentValue, prefsItems->prefsItems[i]->length);
+		wifiManager.addParameter(params[i]);
+	}
+
 	ledController->blink();
 
 	char wpaKey[100];
@@ -236,8 +263,11 @@ void NetworkControl::enterConfigPortal()
 		delay(5000);
 	}
 
-	for (int i = 0; i < wifiParamCount; i++) {
-		prefs->set(params[i]->getID(), params[i]->getValue());
+	if (saveConfig) {
+		saveConfig = false;
+		for (int i = 0; i < wifiParamCount; i++) {
+			prefs->set(params[i]->getID(), params[i]->getValue());
+		}
 	}
 
 	char buffer[100];
@@ -246,7 +276,7 @@ void NetworkControl::enterConfigPortal()
 
 	Log.notice("saved mqtt-server to eeprom: %s\n", buffer);
 
-	ledController->on();     
+	ESP.restart();
 }
 
 void NetworkControl::configUpdate(const char *id, const char *value) {
@@ -260,6 +290,5 @@ void NetworkControl::configUpdate(const char *id, const char *value) {
 
 void NetworkControl::reset() {
 	WiFi.disconnect(false, true);
-	wifiManager.resetSettings();
 }
 

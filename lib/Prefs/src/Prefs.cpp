@@ -39,7 +39,6 @@ void Prefs::get(const char *key, char *destinationBuffer) {
     if (strlen(destinationBuffer) == 0) {
         strcpy(destinationBuffer, getPrefsItem(key)->defaultValue);
     }
-    Log.notice("Prefs->get returning %s for key %s\n", destinationBuffer, key);
     preferences.end();    
 }
 
@@ -101,5 +100,8 @@ PrefsItems *Prefs::getPrefsItems() {
 }
 
 void Prefs::clear() {
+    for (int i = 0; i < prefsItems->length; i++) {
+        set(prefsItems->prefsItems[i]->id, prefsItems->prefsItems[i]->defaultValue);
+    }
     preferences.clear();
 }
