@@ -17,14 +17,11 @@
 #define CONTROLLER_H_
 
 #include <Arduino.h>
-#include <HttpFOTA.h>
 #include <ArduinoLog.h>
-#include <NetworkControl.h>
-#include <Prefs.h>
-#include <LedController.h>
 #include <NetworkModule.h>
 #include <DisplayControl.h>
-#include <OneButton.h>
+#include <Module.h>
+#include <Homie.h>
 
 /* topics */
 #define OTA_TOPIC "ota"
@@ -56,7 +53,7 @@ class Modules {
         virtual void getTelemetryData(char *targetBuffer);        
 };
 
-class Controller : public NetworkModule, public PrefsClient {
+class Controller : public NetworkModule {
     public:
         virtual ~Controller();
 
@@ -65,11 +62,6 @@ class Controller : public NetworkModule, public PrefsClient {
         void setup();
         void loop();
 
-        void buttonClick();
-        void buttonDoubleClick();
-        void buttonLongPressed();
-        
-        virtual void commandReceived(const char *command, const char *payload);
         virtual void getTelemetryData(char *targetBuffer);        
         virtual void configUpdate(const char *id, const char *value);          
 
@@ -103,11 +95,7 @@ class Controller : public NetworkModule, public PrefsClient {
 
         Controller();
 
-        NetworkControl* networkControl;
         DisplayControl* displayControl;
-        Prefs* prefs;
-        LedController* ledController;
-        OneButton *oneButton;
 
         Modules modules;
 
