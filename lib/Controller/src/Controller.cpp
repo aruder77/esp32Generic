@@ -118,6 +118,9 @@ Controller *Controller::getInstance()
 
 Controller::Controller()
 {
+
+  static Controller* controller = this;
+
   // put your setup code here, to run once:
   Serial.begin(BAUD_RATE);
   Log.begin(LOG_LEVEL_TRACE, &Serial);
@@ -131,10 +134,11 @@ Controller::Controller()
   modules.addModule(displayControl);
 
   Homie_setFirmware("esp32Generic", "1.0.0");
+  Homie_setBrand("esp32Generic");  
+  Homie.setLoopFunction([]() { controller->workLoop(); } );  
+  Homie.setSetupFunction([]() { controller->setup(); });
 
   Homie.setup();  
-
-  setup();
 }
 
 Controller::~Controller() {
@@ -154,6 +158,9 @@ void Controller::setup() {
 void Controller::loop()
 {
   Homie.loop();
+}
+
+void Controller::workLoop() {
   unsigned long currentMillis = millis();
 
   modules.loop();
