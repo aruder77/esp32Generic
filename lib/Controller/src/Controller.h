@@ -61,6 +61,7 @@ class Controller : public NetworkModule {
 
         void setup();
         void loop();
+        void workLoop();
 
         virtual void getTelemetryData(char *targetBuffer);        
         virtual void configUpdate(const char *id, const char *value);          
