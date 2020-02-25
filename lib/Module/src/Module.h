@@ -30,7 +30,6 @@ class Module {
         virtual void every50Milliseconds();
         virtual void every100Milliseconds();
         virtual void everySecond();
-        virtual void configUpdate(const char *id, const char *value);
 
 };
 

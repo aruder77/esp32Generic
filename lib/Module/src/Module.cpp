@@ -35,6 +35,3 @@ void Module::every100Milliseconds() {
 
 void Module::everySecond() {
 }
-
-void Module::configUpdate(const char *id, const char *value) {
-}
