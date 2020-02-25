@@ -71,35 +71,6 @@ void Modules::everySecond() {
   }  
 };
 
-void Modules::getTelemetryData(char *targetBuffer) {
-  char telemetryBuffer[1024] = {0};
-  strcpy(telemetryBuffer, "{");
-  int currentLength = 1;
-  for (int i = 0; i < length; i++) {
-    strcpy(telemetryBuffer + currentLength, "\"");
-    currentLength += 1;
-
-    const char *moduleName = modules[i]->getName();
-    strcpy(telemetryBuffer + currentLength, moduleName);
-    currentLength += strlen(moduleName);
-
-    strcpy(telemetryBuffer + currentLength, "\":");
-    currentLength += 2;
-
-    char moduleBuffer[100] = {0};
-    modules[i]->getTelemetryData(moduleBuffer);
-    strcpy(telemetryBuffer + currentLength, moduleBuffer);
-    currentLength += strlen(moduleBuffer);
-
-    if (i != length-1) {
-      strcpy(telemetryBuffer + currentLength, ",");
-      currentLength += 1;
-    }
-  }
-  strcpy(telemetryBuffer + currentLength, "}");
-  strcpy(targetBuffer, telemetryBuffer);
-};
-
 Controller *Controller::instance = 0;
 
 Controller *Controller::getInstance()
@@ -184,21 +155,6 @@ void Controller::workLoop() {
         modules.everySecond();
       }
 
-      if (loopCounter % 1000 == 0) {
-        char telemetryData[1024];
-        modules.getTelemetryData(telemetryData);
-
-        // TODO send telemetry data
-      }
-
       loopCounter++;
   }    
-}
-
-void Controller::configUpdate(const char *id, const char *value) {
-    enterConfigPortalPin = atoi(value);
-}
-
-void Controller::getTelemetryData(char *targetBuffer) {
-  sprintf(targetBuffer, "\"\"");
 }
