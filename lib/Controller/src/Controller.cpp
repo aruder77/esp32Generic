@@ -94,7 +94,6 @@ Controller::Controller()
 
   // put your setup code here, to run once:
   Serial.begin(BAUD_RATE);
-  Log.begin(LOG_LEVEL_TRACE, &Serial);
 
   // short press -> reset
   // long press 10 sec -> complete reset
