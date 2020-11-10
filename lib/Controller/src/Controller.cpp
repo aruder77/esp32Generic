@@ -94,19 +94,12 @@ Controller::Controller()
 
   // put your setup code here, to run once:
   Serial.begin(BAUD_RATE);
-  Log.begin(LOG_LEVEL_TRACE, &Serial);
-
-  // short press -> reset
-  // long press 10 sec -> complete reset
-  // double press -> config mode
 
   // create all modules 
-  displayControl = DisplayControl::getInstance();
-  modules.addModule(displayControl);
+  modules.addModule(DisplayControl::getInstance());
 
-  Homie_setFirmware("esp32Generic", "1.0.0");
-  Homie_setBrand("esp32Generic");  
-  Homie.setLoopFunction([]() { controller->workLoop(); } );  
+  Homie_setFirmware("espGeneric", VERSION);
+  Homie_setBrand("espGeneric");  
   Homie.setSetupFunction([]() { controller->setup(); });
 
   Homie.setup();  
@@ -123,15 +116,15 @@ void Controller::setup() {
   for (int i = 0; i < modules.count(); i++) {
     modules.getAt(i)->afterSetup();
   }
+
+  DisplayControl::getInstance()->displayVersion(VERSION);
 }
 
 
 void Controller::loop()
 {
   Homie.loop();
-}
 
-void Controller::workLoop() {
   unsigned long currentMillis = millis();
 
   modules.loop();
